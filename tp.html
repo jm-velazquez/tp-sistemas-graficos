@@ -73,17 +73,10 @@
             glProgram = null,
             fragmentShader = null,
             vertexShader = null;
-                
-            var vertexPositionAttribute = null,
-            trianglesVerticeBuffer = null,
-            vertexNormalAttribute = null,
-            trianglesNormalBuffer = null,
-            trianglesIndexBuffer = null;
                
             var modelMatrix = mat4.create();
             var viewMatrix = mat4.create();
             var projMatrix = mat4.create();
-            var normalMatrix = mat4.create();
             var rotate_angle = -1.57078;
             
 
@@ -180,30 +173,46 @@
                 rotate_angle += 0.01;
                 mat4.identity(modelMatrix);
                 mat4.rotate(modelMatrix,modelMatrix, rotate_angle, [1.0, 0.0, 1.0]);
-
-
-                mat4.identity(normalMatrix);
-                mat4.multiply(normalMatrix,viewMatrix,modelMatrix);
-                mat4.invert(normalMatrix,normalMatrix);
-                mat4.transpose(normalMatrix,normalMatrix);
             }
 
             function createScene() {
                 const planeBuffers = generateSurfaceBuffers(new Plane(3,3), 5, 5);
 
-                const model = new Model(planeBuffers.glPositionBuffer, planeBuffers.glNormalBuffer, planeBuffers.glIndexBuffer);
-                const model2 = new Model(planeBuffers.glPositionBuffer, planeBuffers.glNormalBuffer, planeBuffers.glIndexBuffer);
-                const model3 = new Model(planeBuffers.glPositionBuffer, planeBuffers.glNormalBuffer, planeBuffers.glIndexBuffer);
+                let level0Matrix = glMatrix.mat4.fromValues(
+                    1,0,0,0,
+                    0,1,0,0,
+                    0,0,1,0,
+                    0,0,0,1
+                );
 
-                model2.rotationDegree = 2;
-                model2.translationVector = [1, 0, 0];
+                // mat4.translate(level0Matrix, level0Matrix, [-0.5,-0.5,0]);
 
-                model3.rotationDegree = 3;
-                model3.translationVector = [0, 1, 0];
+                let level1Matrix = glMatrix.mat4.fromValues(
+                    1,0,0,0,
+                    0,1,0,0,
+                    0,0,1,0,
+                    0,0,2,1
+                );
+                mat4.rotate(level1Matrix, level1Matrix, 1, [0,0,1]);
 
-                model.addChild(model2);
-                model.addChild(model3);
-                model.draw(modelMatrix, glProgram, viewMatrix, projMatrix, normalMatrix);
+                let level2Matrix = glMatrix.mat4.fromValues(
+                    1,0,0,0,
+                    0,1,0,0,
+                    0,0,1,0,
+                    0,0,4,1
+                );
+
+                mat4.rotate(level2Matrix, level2Matrix, 2, [0,0,1]);
+
+                const cubeBuffers = generateSweepSurface(
+                    [[0.5,0.5,0],[-0.5,0.5,0],[-0.5,0.5,0],[-0.5,-0.5,0],[-0.5,-0.5,0],[0.5,-0.5,0],[0.5,-0.5,0],[0.5,0.5,0]],
+                    [[0,1,0],[0,1,0],[-1,0,0],[-1,0,0],[0,-1,0],[0,-1,0],[1,0,0],[1,0,0]],
+                    [level0Matrix, level1Matrix, level2Matrix]
+                );
+                const cube = new Model(cubeBuffers.glPositionBuffer, cubeBuffers.glNormalBuffer, cubeBuffers.glIndexBuffer)
+                cube.translationVector = [0,0,-2];
+                cube.draw(modelMatrix, glProgram, viewMatrix, projMatrix);
+                // model.draw(modelMatrix, glProgram, viewMatrix, projMatrix);
             }
 
             window.onload=initWebGL;
