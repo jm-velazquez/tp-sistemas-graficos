@@ -1,0 +1,215 @@
+<!doctype html>
+<html>
+    <head>
+        <title></title>        
+        <style>
+            body{ background-color: grey; }
+            canvas{ background-color: white; }
+			textarea{ background-color: black; foreground-color: white;}
+        </style>
+    </head>
+    <body>
+
+    	<center>    		            
+            <canvas id="my-canvas" width="1000" height="800">
+            	Your browser does not support the HTML5 canvas element.
+    		</canvas>    		
+    	</center>
+
+        <script type="text/javascript" src="js/gl-matrix.js"></script>
+        <script type="text/javascript" src="model.js"></script>
+        <script type="text/javascript" src="surface-generator.js"></script>
+        <script type="text/javascript" src="surfaces/plane.js"></script>
+        
+        <script id="shader-vs" type="x-shader/x-vertex">
+
+            precision highp float;
+
+            attribute vec3 aVertexPosition;
+            attribute vec3 aVertexNormal;
+
+            uniform mat4 modelMatrix;            
+            uniform mat4 viewMatrix;
+            uniform mat4 projMatrix;
+
+            uniform mat4 normalMatrix;
+
+            varying vec3 vNormal;    
+            varying vec3 vPosWorld;  
+
+            void main(void) {
+                gl_Position = projMatrix * viewMatrix * modelMatrix * vec4(aVertexPosition, 1.0);
+
+                vPosWorld=(modelMatrix*vec4(aVertexPosition,1.0)).xyz;    //la posicion en coordenadas de mundo
+                vNormal=(normalMatrix*vec4(aVertexNormal,1.0)).xyz;       //la normal en coordenadas de mundo                
+                
+            }
+        </script>
+
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision highp float;
+            varying vec3 vNormal;
+            varying vec3 vPosWorld;
+
+            void main(void) {
+
+                vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
+                vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormal,0.4);
+                vec3 color=dot(lightVec,vNormal)*diffColor+vec3(0.2,0.2,0.2);
+
+               gl_FragColor = vec4(color,1.0);
+            }
+        </script>
+        
+        <script>
+
+
+            var mat4=glMatrix.mat4;
+            var vec3=glMatrix.vec3;
+
+            var gl = null,
+            canvas = null,
+
+            glProgram = null,
+            fragmentShader = null,
+            vertexShader = null;
+                
+            var vertexPositionAttribute = null,
+            trianglesVerticeBuffer = null,
+            vertexNormalAttribute = null,
+            trianglesNormalBuffer = null,
+            trianglesIndexBuffer = null;
+               
+            var modelMatrix = mat4.create();
+            var viewMatrix = mat4.create();
+            var projMatrix = mat4.create();
+            var normalMatrix = mat4.create();
+            var rotate_angle = -1.57078;
+            
+
+         
+            function initWebGL(){
+
+                canvas = document.getElementById("my-canvas");  
+
+                try{
+                    gl = canvas.getContext("webgl");      
+
+                }catch(e){
+                    alert(  "Error: Your browser does not appear to support WebGL.");
+                }
+
+                if(gl) {
+
+                    setupWebGL();
+                    initShaders();
+                    tick();
+
+                }else{    
+                    alert(  "Error: Your browser does not appear to support WebGL.");
+                }
+
+            }
+           
+
+            function setupWebGL(){
+                gl.enable(gl.DEPTH_TEST);
+                //set the clear color
+                gl.clearColor(0.1, 0.1, 0.2, 1.0);     
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);     
+    
+                gl.viewport(0, 0, canvas.width, canvas.height);
+
+                // Matrix de Proyeccion Perspectiva
+
+                mat4.perspective(projMatrix,45, canvas.width / canvas.height, 0.1, 100.0);
+                
+                mat4.identity(modelMatrix);
+                mat4.rotate(modelMatrix,modelMatrix, -1.57078, [1.0, 0.0, 0.0]);
+
+                mat4.identity(viewMatrix);
+                mat4.translate(viewMatrix,viewMatrix, [0.0, 0.0, -10.0]);
+            }
+                    
+                    
+            function initShaders() {
+                //get shader source
+                var fs_source = document.getElementById('shader-fs').innerHTML,
+                    vs_source = document.getElementById('shader-vs').innerHTML;
+
+                //compile shaders    
+                vertexShader = makeShader(vs_source, gl.VERTEX_SHADER);
+                fragmentShader = makeShader(fs_source, gl.FRAGMENT_SHADER);
+                
+                //create program
+                glProgram = gl.createProgram();
+                
+                //attach and link shaders to the program
+                gl.attachShader(glProgram, vertexShader);
+                gl.attachShader(glProgram, fragmentShader);
+                gl.linkProgram(glProgram);
+
+                if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
+                    alert("Unable to initialize the shader program.");
+                }
+                
+                //use program
+                gl.useProgram(glProgram);
+            }
+            
+            function makeShader(src, type){
+                //compile the vertex shader
+                var shader = gl.createShader(type);
+                gl.shaderSource(shader, src);
+                gl.compileShader(shader);
+
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.log("Error compiling shader: " + gl.getShaderInfoLog(shader));
+                }
+                return shader;
+            }
+            
+            function tick(){
+                requestAnimationFrame(tick);
+
+                createScene();
+                animate();
+            }
+
+            function animate() {
+                rotate_angle += 0.01;
+                mat4.identity(modelMatrix);
+                mat4.rotate(modelMatrix,modelMatrix, rotate_angle, [1.0, 0.0, 1.0]);
+
+
+                mat4.identity(normalMatrix);
+                mat4.multiply(normalMatrix,viewMatrix,modelMatrix);
+                mat4.invert(normalMatrix,normalMatrix);
+                mat4.transpose(normalMatrix,normalMatrix);
+            }
+
+            function createScene() {
+                const planeBuffers = generateSurfaceBuffers(new Plane(3,3), 5, 5);
+
+                const model = new Model(planeBuffers.glPositionBuffer, planeBuffers.glNormalBuffer, planeBuffers.glIndexBuffer);
+                const model2 = new Model(planeBuffers.glPositionBuffer, planeBuffers.glNormalBuffer, planeBuffers.glIndexBuffer);
+                const model3 = new Model(planeBuffers.glPositionBuffer, planeBuffers.glNormalBuffer, planeBuffers.glIndexBuffer);
+
+                model2.rotationDegree = 2;
+                model2.translationVector = [1, 0, 0];
+
+                model3.rotationDegree = 3;
+                model3.translationVector = [0, 1, 0];
+
+                model.addChild(model2);
+                model.addChild(model3);
+                model.draw(modelMatrix, glProgram, viewMatrix, projMatrix, normalMatrix);
+            }
+
+            window.onload=initWebGL;
+
+        </script>
+
+
+    </body>
+</html>
