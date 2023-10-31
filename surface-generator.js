@@ -58,34 +58,155 @@ function generateSurfaceBuffers(surface, rows, columns) {
 function generateSweepSurface(positionVectors, normalVectors, levelMatrices) {
 	let positionBuffer = [];
 	let normalBuffer = [];
-	
-	levelMatrices.forEach(matrix => {
+    for (let i = 0; i < positionVectors.length; i++) {
+        positionBuffer.push(0,0,0);
+        normalBuffer.push(0,0,-1);
+    }
+    for (let i = 0; i < levelMatrices.length; i++) {
         let normalMatrix = glMatrix.mat4.create();
         mat4.invert(normalMatrix, this.modelMatrix);
-        mat4.transpose(normalMatrix,normalMatrix);
-		for (let i = 0; i < positionVectors.length; i++) {
+        mat4.transpose(normalMatrix, normalMatrix);
+		for (let j = 0; j < positionVectors.length; j++) {
 			const newPosition = glMatrix.vec4.create();
 			const newNormal = glMatrix.vec4.create();
-            let positionVector = glMatrix.vec4.fromValues(
-                positionVectors[i][0],
-                positionVectors[i][1],
-                positionVectors[i][2],
-                1
-            );
-            let normalVector = glMatrix.vec4.fromValues(
-                normalVectors[i][0],
-                normalVectors[i][1],
-                normalVectors[i][2],
-                1
-            );
-			glMatrix.vec4.transformMat4(newPosition, positionVector, matrix);
-            glMatrix.vec4.transformMat4(newNormal, normalVector, normalMatrix);
+			glMatrix.vec4.transformMat4(newPosition, positionVectors[j], levelMatrices[i]);
+            glMatrix.vec4.transformMat4(newNormal, normalVectors[j], normalMatrix);
 
 			positionBuffer.push(newPosition[0], newPosition[1], newPosition[2]);
 			normalBuffer.push(newNormal[0], newNormal[1], newNormal[2]);
 		}
-	});
+    }
 
-	let indexBuffer = getIndexBuffer(levelMatrices.length, positionVectors.length);
+    for (let i = 0; i < positionVectors.length; i++) {
+        positionBuffer.push(0,0,4);
+        normalBuffer.push(0,0,1);
+    }
+    let bottomBuffers, topBuffers = null;
+    [bottomBuffers, topBuffers] = generateTopAndBottomBuffers(positionVectors, levelMatrices);
+
+    positionBuffer = bottomBuffers.positionBuffer.concat(positionBuffer, topBuffers.positionBuffer);
+    normalBuffer = bottomBuffers.normalBuffer.concat(normalBuffer, topBuffers.normalBuffer);
+
+	let indexBuffer = getIndexBuffer(levelMatrices.length + 4, positionVectors.length);
+    return getGlBuffersFromBuffers(positionBuffer, normalBuffer, [], indexBuffer);
+}
+
+function getAveragePosition(positionVectors) {
+    let result = glMatrix.vec4.create();
+    positionVectors.forEach(vector => glMatrix.vec4.add(result, result, vector));
+    glMatrix.vec4.scale(result,result, 1 / positionVectors.length);
+    return result;
+}
+
+function generateTopAndBottomBuffers(positionVectors, levelMatrices) {
+    let averagePosition = getAveragePosition(positionVectors);
+    let bottomPositionBuffer = [];
+    let bottomNormalBuffer = [];
+    for (let i = 0; i < positionVectors.length; i++) {
+        bottomPositionBuffer.push(
+            averagePosition[0], averagePosition[1], averagePosition[2],
+        );
+        bottomNormalBuffer.push(0,0,-1);
+    }
+
+    positionVectors.forEach(positionVector => {
+        const newPositionVector = glMatrix.vec4.create();
+        glMatrix.vec4.transformMat4(newPositionVector, positionVector, levelMatrices[0]);
+        bottomPositionBuffer.push(
+            newPositionVector[0], newPositionVector[1], newPositionVector[2],
+        );
+        bottomNormalBuffer.push(0,0,-1);
+    });
+
+    let topPositionBuffer = [];
+    let topNormalBuffer = [];
+    positionVectors.forEach(positionVector => {
+        const newPositionVector = glMatrix.vec4.create();
+        glMatrix.vec4.transformMat4(newPositionVector, positionVector, levelMatrices[levelMatrices.length - 1]);
+        topPositionBuffer.push(
+            newPositionVector[0], newPositionVector[1], newPositionVector[2],
+        );
+        topNormalBuffer.push(0,0,1);
+    });
+    const newAveragePosition = glMatrix.vec4.create();
+    glMatrix.vec4.transformMat4(newAveragePosition, averagePosition, levelMatrices[levelMatrices.length - 1]);
+    for (let i = 0; i < positionVectors.length; i++) {
+        topPositionBuffer.push(
+            newAveragePosition[0], newAveragePosition[1], newAveragePosition[2],
+        );
+        topNormalBuffer.push(0,0,1);
+    }
+    return [
+        {
+            positionBuffer: bottomPositionBuffer,
+            normalBuffer: bottomNormalBuffer
+        },
+        {
+            positionBuffer: topPositionBuffer,
+            normalBuffer: topNormalBuffer
+        }
+    ];
+}
+
+function getBoxBuffers() {
+    let positionBuffer = [];
+    let normalBuffer = [];
+    let indexBuffer = [];
+    positionBuffer.push(
+        0,0,0,
+        1,0,0,
+        0,1,0,
+        1,1,0,
+        1,1,0,
+        1,1,1,
+        0,1,0,
+        0,1,1,
+        0,1,1,
+        0,1,0,
+        0,0,1,
+        0,0,0,
+        0,0,0,
+        0,0,1,
+        1,0,0,
+        1,0,1,
+        1,0,1,
+        1,0,0,
+        1,1,1,
+        1,1,0,
+        1,1,1,
+        0,1,1,
+        1,0,1,
+        0,0,1,
+    );
+
+    normalBuffer.push(
+        0,0,-1,
+        0,0,-1,
+        0,0,-1,
+        0,0,-1,
+        0,1,0,
+        0,1,0,
+        0,1,0,
+        0,1,0,
+        -1,0,0,
+        -1,0,0,
+        -1,0,0,
+        -1,0,0,
+        0,-1,0,
+        0,-1,0,
+        0,-1,0,
+        0,-1,0,
+        1,0,0,
+        1,0,0,
+        1,0,0,
+        1,0,0,
+        0,0,1,
+        0,0,1,
+        0,0,1,
+        0,0,1,
+    );
+
+    indexBuffer.push(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,18,20,20,21,22,23);
+
     return getGlBuffersFromBuffers(positionBuffer, normalBuffer, [], indexBuffer);
 }

@@ -20,6 +20,7 @@
         <script type="text/javascript" src="model.js"></script>
         <script type="text/javascript" src="surface-generator.js"></script>
         <script type="text/javascript" src="surfaces/plane.js"></script>
+        <script type="text/javascript" src="models/box.js"></script>
         
         <script id="shader-vs" type="x-shader/x-vertex">
 
@@ -115,13 +116,13 @@
 
                 // Matrix de Proyeccion Perspectiva
 
-                mat4.perspective(projMatrix,45, canvas.width / canvas.height, 0.1, 100.0);
+                mat4.perspective(projMatrix,45, canvas.width / canvas.height, 0.1, 1000.0);
                 
                 mat4.identity(modelMatrix);
                 mat4.rotate(modelMatrix,modelMatrix, -1.57078, [1.0, 0.0, 0.0]);
 
                 mat4.identity(viewMatrix);
-                mat4.translate(viewMatrix,viewMatrix, [0.0, 0.0, -10.0]);
+                mat4.translate(viewMatrix,viewMatrix, [0.0, 0.0, -20.0]);
             }
                     
                     
@@ -205,14 +206,36 @@
                 mat4.rotate(level2Matrix, level2Matrix, 2, [0,0,1]);
 
                 const cubeBuffers = generateSweepSurface(
-                    [[0.5,0.5,0],[-0.5,0.5,0],[-0.5,0.5,0],[-0.5,-0.5,0],[-0.5,-0.5,0],[0.5,-0.5,0],[0.5,-0.5,0],[0.5,0.5,0]],
-                    [[0,1,0],[0,1,0],[-1,0,0],[-1,0,0],[0,-1,0],[0,-1,0],[1,0,0],[1,0,0]],
+                    [
+                        glMatrix.vec4.fromValues(0.5,0.5,0,1),
+                        glMatrix.vec4.fromValues(-0.5,0.5,0,1),
+                        glMatrix.vec4.fromValues(-0.5,0.5,0,1),
+                        glMatrix.vec4.fromValues(-0.5,-0.5,0,1),
+                        glMatrix.vec4.fromValues(-0.5,-0.5,0,1),
+                        glMatrix.vec4.fromValues(0.5,-0.5,0,1),
+                        glMatrix.vec4.fromValues(0.5,-0.5,0,1),
+                        glMatrix.vec4.fromValues(0.5,0.5,0,1),
+                    ],
+                    [
+                        glMatrix.vec4.fromValues(0,1,0,1),
+                        glMatrix.vec4.fromValues(0,1,0,1),
+                        glMatrix.vec4.fromValues(-1,0,0,1),
+                        glMatrix.vec4.fromValues(-1,0,0,1),
+                        glMatrix.vec4.fromValues(0,-1,0,1),
+                        glMatrix.vec4.fromValues(0,-1,0,1),
+                        glMatrix.vec4.fromValues(1,0,0,1),
+                        glMatrix.vec4.fromValues(1,0,0,1),
+                    ],
                     [level0Matrix, level1Matrix, level2Matrix]
                 );
-                const cube = new Model(cubeBuffers.glPositionBuffer, cubeBuffers.glNormalBuffer, cubeBuffers.glIndexBuffer)
-                cube.translationVector = [0,0,-2];
-                cube.draw(modelMatrix, glProgram, viewMatrix, projMatrix);
-                // model.draw(modelMatrix, glProgram, viewMatrix, projMatrix);
+                const building = new Model(cubeBuffers.glPositionBuffer, cubeBuffers.glNormalBuffer, cubeBuffers.glIndexBuffer)
+                building.translationVector = [0,0,0.5];
+                building.draw(modelMatrix, glProgram, viewMatrix, projMatrix);
+
+                const square = getBox();
+                square.scalingVector = [10,10,0.5];
+                square.translationVector = [-1.2,-1.2,0];
+                square.draw(modelMatrix, glProgram, viewMatrix, projMatrix);
             }
 
             window.onload=initWebGL;
