@@ -15,12 +15,6 @@
             	Your browser does not support the HTML5 canvas element.
     		</canvas>    		
     	</center>
-
-        <script type="text/javascript" src="js/gl-matrix.js"></script>
-        <script type="text/javascript" src="model.js"></script>
-        <script type="text/javascript" src="surface-generator.js"></script>
-        <script type="text/javascript" src="surfaces/plane.js"></script>
-        <script type="text/javascript" src="models/box.js"></script>
         
         <script id="shader-vs" type="x-shader/x-vertex">
 
@@ -62,30 +56,29 @@
             }
         </script>
         
-        <script>
+        <script type="text/javascript" src="./js/gl-matrix-min.js"></script>
 
+        <script type="module">
+            import { getCar } from "./models/car.js";
+            import { drawGrid } from "./models/grid.js";
 
-            var mat4=glMatrix.mat4;
-            var vec3=glMatrix.vec3;
+            let mat4=glMatrix.mat4;
+            let vec3=glMatrix.vec3;
 
-            var gl = null,
-            canvas = null,
+            let gl = null;
 
-            glProgram = null,
-            fragmentShader = null,
-            vertexShader = null;
+            let glProgram = null;
+            let fragmentShader = null;
+            let vertexShader = null;
                
-            var modelMatrix = mat4.create();
-            var viewMatrix = mat4.create();
-            var projMatrix = mat4.create();
-            var rotate_angle = -1.57078;
+            let modelMatrix = mat4.create();
+            let viewMatrix = mat4.create();
+            let projMatrix = mat4.create();
+            let rotate_angle = -1.57078;
             
-
+            let canvas = document.getElementById("my-canvas");
          
             function initWebGL(){
-
-                canvas = document.getElementById("my-canvas");  
-
                 try{
                     gl = canvas.getContext("webgl");      
 
@@ -94,7 +87,6 @@
                 }
 
                 if(gl) {
-
                     setupWebGL();
                     initShaders();
                     tick();
@@ -116,13 +108,13 @@
 
                 // Matrix de Proyeccion Perspectiva
 
-                mat4.perspective(projMatrix,45, canvas.width / canvas.height, 0.1, 1000.0);
+                mat4.perspective(projMatrix,45, canvas.width / canvas.height, 0.1, null);
                 
                 mat4.identity(modelMatrix);
                 mat4.rotate(modelMatrix,modelMatrix, -1.57078, [1.0, 0.0, 0.0]);
 
                 mat4.identity(viewMatrix);
-                mat4.translate(viewMatrix,viewMatrix, [0.0, 0.0, -20.0]);
+                mat4.translate(viewMatrix,viewMatrix, [0.0, 0, -1000.0]);
             }
                     
                     
@@ -170,72 +162,88 @@
                 animate();
             }
 
+            let previousClientX = 0;
+            let previousClientY = 0;
+            let radius = 10;
+            let alpha = 0;
+            let beta = Math.PI / 2;
+            let speedFactor = 0.01;
+
+            let plusDown = false;
+            let minusDown = false;
+
+            let zoomFactor = -20;
+
+            let actualEvent;
+
+            let mouse = {x: 0, y: 0};
+
+            canvas.addEventListener("mousemove", (e) => {
+                mouse.x = e.clientX || e.pageX; 
+                mouse.y = e.clientY || e.pageY;
+            });
+
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "=") plusDown = true;
+                else if (e.key === "-")minusDown = true;
+            });
+
+            window.addEventListener("keyup", (e) => {
+                if (e.key === "=") plusDown = false;
+                else if (e.key === "-") minusDown = false;
+            });
+
             function animate() {
-                rotate_angle += 0.01;
+                rotateOrbitalCamera();
+                zoomInOrbitalCamera();
+            }
+
+            function rotateOrbitalCamera() {
+                let deltaX = 0;
+                let deltaY = 0;
+
+                if (previousClientX) deltaX = mouse.x - previousClientX;
+                if (previousClientY) deltaY = mouse.y - previousClientY;
+
+                previousClientX = mouse.x;
+                previousClientY = mouse.y;
+
+                alpha = alpha + deltaX * speedFactor;
+                beta = beta + deltaY * speedFactor;
+
+                if (beta<0) beta=0;
+                if (beta>Math.PI) beta=Math.PI;
+
                 mat4.identity(modelMatrix);
-                mat4.rotate(modelMatrix,modelMatrix, rotate_angle, [1.0, 0.0, 1.0]);
+                mat4.translate(
+                    modelMatrix,
+                    modelMatrix,
+                    [
+                        radius * Math.sin(alpha) * Math.sin(beta),
+                        radius * Math.cos(beta),
+                        radius * Math.cos(alpha) * Math.sin(beta),
+                    ]
+                );
+            }
+
+            function zoomInOrbitalCamera() {
+                if (plusDown) {
+                    zoomFactor += 2;
+                    if (zoomFactor > -100) zoomFactor = -100;
+                } else if (minusDown) {
+                    zoomFactor -= 2;
+                    if (zoomFactor < -1000) zoomFactor = -1000;
+                }
+
+                mat4.identity(viewMatrix);
+                mat4.translate(viewMatrix,viewMatrix, [0, 0, zoomFactor]);
             }
 
             function createScene() {
-                const planeBuffers = generateSurfaceBuffers(new Plane(3,3), 5, 5);
+                drawGrid(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
-                let level0Matrix = glMatrix.mat4.fromValues(
-                    1,0,0,0,
-                    0,1,0,0,
-                    0,0,1,0,
-                    0,0,0,1
-                );
-
-                // mat4.translate(level0Matrix, level0Matrix, [-0.5,-0.5,0]);
-
-                let level1Matrix = glMatrix.mat4.fromValues(
-                    1,0,0,0,
-                    0,1,0,0,
-                    0,0,1,0,
-                    0,0,2,1
-                );
-                mat4.rotate(level1Matrix, level1Matrix, 1, [0,0,1]);
-
-                let level2Matrix = glMatrix.mat4.fromValues(
-                    1,0,0,0,
-                    0,1,0,0,
-                    0,0,1,0,
-                    0,0,4,1
-                );
-
-                mat4.rotate(level2Matrix, level2Matrix, 2, [0,0,1]);
-
-                const cubeBuffers = generateSweepSurface(
-                    [
-                        glMatrix.vec4.fromValues(0.5,0.5,0,1),
-                        glMatrix.vec4.fromValues(-0.5,0.5,0,1),
-                        glMatrix.vec4.fromValues(-0.5,0.5,0,1),
-                        glMatrix.vec4.fromValues(-0.5,-0.5,0,1),
-                        glMatrix.vec4.fromValues(-0.5,-0.5,0,1),
-                        glMatrix.vec4.fromValues(0.5,-0.5,0,1),
-                        glMatrix.vec4.fromValues(0.5,-0.5,0,1),
-                        glMatrix.vec4.fromValues(0.5,0.5,0,1),
-                    ],
-                    [
-                        glMatrix.vec4.fromValues(0,1,0,1),
-                        glMatrix.vec4.fromValues(0,1,0,1),
-                        glMatrix.vec4.fromValues(-1,0,0,1),
-                        glMatrix.vec4.fromValues(-1,0,0,1),
-                        glMatrix.vec4.fromValues(0,-1,0,1),
-                        glMatrix.vec4.fromValues(0,-1,0,1),
-                        glMatrix.vec4.fromValues(1,0,0,1),
-                        glMatrix.vec4.fromValues(1,0,0,1),
-                    ],
-                    [level0Matrix, level1Matrix, level2Matrix]
-                );
-                const building = new Model(cubeBuffers.glPositionBuffer, cubeBuffers.glNormalBuffer, cubeBuffers.glIndexBuffer)
-                building.translationVector = [0,0,0.5];
-                building.draw(modelMatrix, glProgram, viewMatrix, projMatrix);
-
-                const square = getBox();
-                square.scalingVector = [10,10,0.5];
-                square.translationVector = [-1.2,-1.2,0];
-                square.draw(modelMatrix, glProgram, viewMatrix, projMatrix);
+                const car = getCar(gl, glMatrix);
+                car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
             }
 
             window.onload=initWebGL;

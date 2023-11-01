@@ -1,3 +1,5 @@
+import { getGlBuffersFromBuffers } from "./gl/gl-buffers.js";
+
 function getIndexBuffer(rows, columns) {
     let index = [];
     for (var i = 0; i < rows - 1; i++) {
@@ -11,23 +13,6 @@ function getIndexBuffer(rows, columns) {
         index.push((i + 1) * columns + columns - 1);
     }
     return index;
-}
-
-function getGlBuffersFromBuffers(positionBuffer, normalBuffer, uvBuffer, indexBuffer) { 
-    glPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, glPositionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positionBuffer), gl.STATIC_DRAW);    
-
-    glNormalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, glNormalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalBuffer), gl.STATIC_DRAW);
-
-    glIndexBuffer = gl.createBuffer();
-    glIndexBuffer.number_vertex_point = indexBuffer.length;
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glIndexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexBuffer), gl.STATIC_DRAW);
-    // TODO: Add uvBuffer
-    return {glPositionBuffer, glNormalBuffer, uvBuffer, glIndexBuffer}
 }
 
 function generateSurfaceBuffers(surface, rows, columns) {
@@ -55,17 +40,14 @@ function generateSurfaceBuffers(surface, rows, columns) {
     return getGlBuffersFromBuffers(positionBuffer, normalBuffer, uvBuffer, indexBuffer);
 }
 
-function generateSweepSurface(positionVectors, normalVectors, levelMatrices) {
+export function generateSweepSurface(gl, glMatrix, positionVectors, normalVectors, levelMatrices) {
 	let positionBuffer = [];
 	let normalBuffer = [];
-    for (let i = 0; i < positionVectors.length; i++) {
-        positionBuffer.push(0,0,0);
-        normalBuffer.push(0,0,-1);
-    }
+
     for (let i = 0; i < levelMatrices.length; i++) {
         let normalMatrix = glMatrix.mat4.create();
-        mat4.invert(normalMatrix, this.modelMatrix);
-        mat4.transpose(normalMatrix, normalMatrix);
+        glMatrix.mat4.invert(normalMatrix, levelMatrices[i]);
+        glMatrix.mat4.transpose(normalMatrix, normalMatrix);
 		for (let j = 0; j < positionVectors.length; j++) {
 			const newPosition = glMatrix.vec4.create();
 			const newNormal = glMatrix.vec4.create();
@@ -77,10 +59,6 @@ function generateSweepSurface(positionVectors, normalVectors, levelMatrices) {
 		}
     }
 
-    for (let i = 0; i < positionVectors.length; i++) {
-        positionBuffer.push(0,0,4);
-        normalBuffer.push(0,0,1);
-    }
     let bottomBuffers, topBuffers = null;
     [bottomBuffers, topBuffers] = generateTopAndBottomBuffers(positionVectors, levelMatrices);
 
@@ -88,7 +66,7 @@ function generateSweepSurface(positionVectors, normalVectors, levelMatrices) {
     normalBuffer = bottomBuffers.normalBuffer.concat(normalBuffer, topBuffers.normalBuffer);
 
 	let indexBuffer = getIndexBuffer(levelMatrices.length + 4, positionVectors.length);
-    return getGlBuffersFromBuffers(positionBuffer, normalBuffer, [], indexBuffer);
+    return getGlBuffersFromBuffers(gl, positionBuffer, normalBuffer, [], indexBuffer);
 }
 
 function getAveragePosition(positionVectors) {
@@ -102,11 +80,16 @@ function generateTopAndBottomBuffers(positionVectors, levelMatrices) {
     let averagePosition = getAveragePosition(positionVectors);
     let bottomPositionBuffer = [];
     let bottomNormalBuffer = [];
+    let bottomAveragePosition = glMatrix.vec4.create();
+
+    let bottomNormalVector = glMatrix.vec4.fromValues(0,0,-1);
+    glMatrix.vec4.transformMat4(bottomNormalVector, bottomNormalVector, levelMatrices[0]);
+    glMatrix.vec4.transformMat4(bottomAveragePosition, averagePosition, levelMatrices[0]);
     for (let i = 0; i < positionVectors.length; i++) {
         bottomPositionBuffer.push(
-            averagePosition[0], averagePosition[1], averagePosition[2],
+            bottomAveragePosition[0], bottomAveragePosition[1], bottomAveragePosition[2],
         );
-        bottomNormalBuffer.push(0,0,-1);
+        bottomNormalBuffer.push(bottomNormalVector[0], bottomNormalVector[1], bottomNormalVector[2]);
     }
 
     positionVectors.forEach(positionVector => {
@@ -130,11 +113,15 @@ function generateTopAndBottomBuffers(positionVectors, levelMatrices) {
     });
     const newAveragePosition = glMatrix.vec4.create();
     glMatrix.vec4.transformMat4(newAveragePosition, averagePosition, levelMatrices[levelMatrices.length - 1]);
+    
+    let topNormalVector = glMatrix.vec4.fromValues(0,0,1);
+    glMatrix.vec4.transformMat4(topNormalVector, topNormalVector, levelMatrices[levelMatrices.length - 1]);
+
     for (let i = 0; i < positionVectors.length; i++) {
         topPositionBuffer.push(
             newAveragePosition[0], newAveragePosition[1], newAveragePosition[2],
         );
-        topNormalBuffer.push(0,0,1);
+        topNormalBuffer.push(topNormalVector[0], topNormalVector[1], topNormalVector[2]);
     }
     return [
         {

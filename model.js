@@ -1,5 +1,5 @@
 
-class Model {
+export class Model {
     positionBuffer = null;
     normalBuffer = null;
     indexBuffer = null;
@@ -30,17 +30,17 @@ class Model {
     }
 
 
-    draw(parentMatrix, glProgram, viewMatrix, projMatrix) {
+    draw(gl, glMatrix, glProgram, parentMatrix, viewMatrix, projMatrix) {
         this.updateModelMatrix();
 
         let matrix = glMatrix.mat4.create();
         glMatrix.mat4.multiply(matrix, parentMatrix, this.modelMatrix);
         if (this.positionBuffer && this.normalBuffer && this.indexBuffer) {
             let normalMatrix = glMatrix.mat4.create();
-            mat4.identity(normalMatrix);
-            mat4.multiply(normalMatrix, viewMatrix, this.modelMatrix);
-            mat4.invert(normalMatrix, normalMatrix);
-            mat4.transpose(normalMatrix,normalMatrix);
+            glMatrix.mat4.identity(normalMatrix);
+            glMatrix.mat4.multiply(normalMatrix, viewMatrix, this.modelMatrix);
+            glMatrix.mat4.invert(normalMatrix, normalMatrix);
+            glMatrix.mat4.transpose(normalMatrix,normalMatrix);
 
             var modelMatrixUniform = gl.getUniformLocation(glProgram, "modelMatrix");
             var viewMatrixUniform  = gl.getUniformLocation(glProgram, "viewMatrix");
@@ -63,9 +63,9 @@ class Model {
             gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-            gl.drawElements( gl.TRIANGLE_STRIP, this.indexBuffer.number_vertex_point, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLE_STRIP, this.indexBuffer.number_vertex_point, gl.UNSIGNED_SHORT, 0);
         }
 
-        this.children.forEach(child => child.draw(matrix, glProgram, viewMatrix, projMatrix));
+        this.children.forEach(child => child.draw(gl, glMatrix, glProgram, matrix, viewMatrix, projMatrix));
     }
 }
