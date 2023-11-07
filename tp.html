@@ -60,6 +60,8 @@
 
         <script type="module">
             import { getCar } from "./models/car.js";
+            import { getBlock, getBuildingBlockHeights } from "./models/block.js";
+            import { getBlockGrid, getBuildingBlockHeightsPerBlock } from "./models/block-grid.js";
             import { drawGrid } from "./models/grid.js";
 
             let mat4=glMatrix.mat4;
@@ -164,7 +166,7 @@
 
             let previousClientX = 0;
             let previousClientY = 0;
-            let radius = 10;
+            let radius = 200;
             let alpha = 0;
             let beta = Math.PI / 2;
             let speedFactor = 0.01;
@@ -239,11 +241,15 @@
                 mat4.translate(viewMatrix,viewMatrix, [0, 0, zoomFactor]);
             }
 
+            const buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
+
             function createScene() {
                 drawGrid(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
                 const car = getCar(gl, glMatrix);
-                car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+                // car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+                const blockGrid = getBlockGrid(gl, glMatrix, buildingHeightsPerBlock);
+                blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
             }
 
             window.onload=initWebGL;

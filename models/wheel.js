@@ -2,7 +2,7 @@ export const DEPTH = 0.2;
 export const RADIUS = 0.25;
 const DEFINITION = 20;
 
-import { Circle } from "../surfaces/circle.js";
+import { Circle } from "../shapes/circle.js";
 import { Model } from "../model.js";
 import { generateSweepSurface } from "../surface-generator.js";
 
@@ -29,11 +29,11 @@ export function getWheel(gl, glMatrix) {
 		circleArrays.positionArray,
 		circleArrays.normalArray,
 		[level0Matrix, level1Matrix],
-	)
-	const wheel = new Model(
+	);
+	return new Model(
+		gl.TRIANGLE_STRIP,
 		cylinderBuffers.glPositionBuffer,
 		cylinderBuffers.glNormalBuffer,
 		cylinderBuffers.glIndexBuffer
 	);
-	return wheel;
 }

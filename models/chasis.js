@@ -8,7 +8,7 @@ const TOP_TOP_WIDTH = 1.5;
 const TOP_HEIGHT = 0.5;
 export const TOP_DEPTH = 0.95;
 
-import { Trapezoid } from "../surfaces/trapezoid.js";
+import { Trapezoid } from "../shapes/trapezoid.js";
 import { Model } from "../model.js";
 import { generateSweepSurface } from "../surface-generator.js";
 
@@ -37,6 +37,7 @@ export function getChasis(gl, glMatrix) {
 		[level0Matrix, level1MatrixBase],
 	);
 	const carBase = new Model(
+		gl.TRIANGLE_STRIP,
 		carBaseBuffers.glPositionBuffer,
 		carBaseBuffers.glNormalBuffer,
 		carBaseBuffers.glIndexBuffer
@@ -59,6 +60,7 @@ export function getChasis(gl, glMatrix) {
 		[level0Matrix, level1MatrixTop],
 	);
 	const carTop = new Model(
+		gl.TRIANGLE_STRIP,
 		carTopBuffers.glPositionBuffer,
 		carTopBuffers.glNormalBuffer,
 		carTopBuffers.glIndexBuffer

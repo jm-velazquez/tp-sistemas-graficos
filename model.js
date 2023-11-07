@@ -12,7 +12,10 @@ export class Model {
     rotationDegree = 0;
     scalingVector = [1, 1, 1];
 
-    constructor(positionBuffer = null, normalBuffer = null, indexBuffer = null) {
+    drawMode = null;
+
+    constructor(drawMode = null, positionBuffer = null, normalBuffer = null, indexBuffer = null) {
+        this.drawMode = drawMode;
         this.positionBuffer = positionBuffer;
         this.normalBuffer = normalBuffer;
         this.indexBuffer = indexBuffer;
@@ -35,7 +38,7 @@ export class Model {
 
         let matrix = glMatrix.mat4.create();
         glMatrix.mat4.multiply(matrix, parentMatrix, this.modelMatrix);
-        if (this.positionBuffer && this.normalBuffer && this.indexBuffer) {
+        if (this.drawMode && this.positionBuffer && this.normalBuffer && this.indexBuffer) {
             let normalMatrix = glMatrix.mat4.create();
             glMatrix.mat4.identity(normalMatrix);
             glMatrix.mat4.multiply(normalMatrix, viewMatrix, this.modelMatrix);
@@ -63,7 +66,7 @@ export class Model {
             gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-            gl.drawElements(gl.TRIANGLE_STRIP, this.indexBuffer.number_vertex_point, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(this.drawMode, this.indexBuffer.number_vertex_point, gl.UNSIGNED_SHORT, 0);
         }
 
         this.children.forEach(child => child.draw(gl, glMatrix, glProgram, matrix, viewMatrix, projMatrix));

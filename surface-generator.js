@@ -82,9 +82,10 @@ function generateTopAndBottomBuffers(positionVectors, levelMatrices) {
     let bottomNormalBuffer = [];
     let bottomAveragePosition = glMatrix.vec4.create();
 
-    let bottomNormalVector = glMatrix.vec4.fromValues(0,0,-1);
+    let bottomNormalVector = glMatrix.vec4.fromValues(0,0,-1,1);
     glMatrix.vec4.transformMat4(bottomNormalVector, bottomNormalVector, levelMatrices[0]);
     glMatrix.vec4.transformMat4(bottomAveragePosition, averagePosition, levelMatrices[0]);
+    glMatrix.vec4.normalize(bottomNormalVector, bottomNormalVector);
     for (let i = 0; i < positionVectors.length; i++) {
         bottomPositionBuffer.push(
             bottomAveragePosition[0], bottomAveragePosition[1], bottomAveragePosition[2],
@@ -98,24 +99,26 @@ function generateTopAndBottomBuffers(positionVectors, levelMatrices) {
         bottomPositionBuffer.push(
             newPositionVector[0], newPositionVector[1], newPositionVector[2],
         );
-        bottomNormalBuffer.push(0,0,-1);
+        bottomNormalBuffer.push(bottomNormalVector[0], bottomNormalVector[1], bottomNormalVector[2]);
     });
 
     let topPositionBuffer = [];
     let topNormalBuffer = [];
+    let topNormalVector = glMatrix.vec4.fromValues(0,0,1,1);
+    glMatrix.vec4.transformMat4(topNormalVector, topNormalVector, levelMatrices[levelMatrices.length - 1]);
+    glMatrix.vec4.normalize(topNormalVector, topNormalVector);
     positionVectors.forEach(positionVector => {
         const newPositionVector = glMatrix.vec4.create();
         glMatrix.vec4.transformMat4(newPositionVector, positionVector, levelMatrices[levelMatrices.length - 1]);
         topPositionBuffer.push(
             newPositionVector[0], newPositionVector[1], newPositionVector[2],
         );
-        topNormalBuffer.push(0,0,1);
+        topNormalBuffer.push(topNormalVector[0], topNormalVector[1], topNormalVector[2]);
     });
     const newAveragePosition = glMatrix.vec4.create();
     glMatrix.vec4.transformMat4(newAveragePosition, averagePosition, levelMatrices[levelMatrices.length - 1]);
     
-    let topNormalVector = glMatrix.vec4.fromValues(0,0,1);
-    glMatrix.vec4.transformMat4(topNormalVector, topNormalVector, levelMatrices[levelMatrices.length - 1]);
+    
 
     for (let i = 0; i < positionVectors.length; i++) {
         topPositionBuffer.push(

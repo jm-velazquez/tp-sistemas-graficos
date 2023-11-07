@@ -23,7 +23,7 @@ function getGridBuffers(gl, size) {
 }
 
 export function drawGrid(gl, glMatrix, glProgram, parentMatrix, viewMatrix, projMatrix) {
-	const buffers = getGridBuffers(gl, 20);
+	const buffers = getGridBuffers(gl, 1000);
 
 	let normalMatrix = glMatrix.mat4.create();
 	glMatrix.mat4.invert(normalMatrix, viewMatrix);
