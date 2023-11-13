@@ -63,6 +63,7 @@
             import { getBlock, getBuildingBlockHeights } from "./models/block.js";
             import { getBlockGrid, getBuildingBlockHeightsPerBlock } from "./models/block-grid.js";
             import { drawGrid } from "./models/grid.js";
+            import { OrbitalCamera } from "./cameras/orbital-camera.js";
 
             let mat4=glMatrix.mat4;
             let vec3=glMatrix.vec3;
@@ -160,74 +161,24 @@
                 animate();
             }
 
-            let radius = 1000;
-            const MIN_RADIUS = 100;
-            const MAX_RADIUS = 1000;
-            let alpha = Math.PI / 2;
-            let beta = Math.PI / 2;
-            let speedFactor = 0.005;
-            let zoomFactor = 5;
-
-            let plusDown = false;
-            let minusDown = false;
-
-            let actualEvent;
-
-            let previousClient = {x: 0, y: 0};
-            let mouse = {x: 0, y: 0};
-
+            const orbitalCamera = new OrbitalCamera();
+            
             canvas.addEventListener("mousemove", (e) => {
-                mouse.x = e.clientX || e.pageX; 
-                mouse.y = e.clientY || e.pageY;
+                orbitalCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
             });
 
             window.addEventListener("keydown", (e) => {
-                if (e.key === "=") plusDown = true;
-                else if (e.key === "-")minusDown = true;
-            });
-
-            window.addEventListener("keyup", (e) => {
-                if (e.key === "=") plusDown = false;
-                else if (e.key === "-") minusDown = false;
+                if (e.key === "=") orbitalCamera.zoomIn();
+                else if (e.key === "-") orbitalCamera.zoomOut();
             });
 
             window.addEventListener("wheel", (e) => {
-                radius += e.deltaY;
+                if (e.deltaY > 0) orbitalCamera.zoomOut();
+                else if (e.deltaY < 0) orbitalCamera.zoomIn();
             });
 
             function animate() {
-                rotateOrbitalCamera();
-                zoomInOrbitalCamera();
-            }
-
-            function rotateOrbitalCamera() {
-                const deltaX = mouse.x - previousClient.x;
-                const deltaY = mouse.y - previousClient.y;
-
-                alpha = alpha + deltaX * speedFactor;
-                beta = beta - deltaY * speedFactor;
-
-                if (beta < 0.01) beta = 0.01;
-                if (beta > Math.PI / 2) beta = Math.PI / 2;
-
-                const origin = glMatrix.vec4.fromValues(
-                    radius * Math.cos(alpha) * Math.sin(beta),
-                    radius * Math.sin(alpha) * Math.sin(beta),
-                    radius * Math.cos(beta),
-                );
-                const center = glMatrix.vec4.fromValues(0,0,0);
-                const up = glMatrix.vec4.fromValues(0,0,1);
-                glMatrix.mat4.lookAt(viewMatrix, origin, center, up);
-
-                previousClient.x = mouse.x;
-                previousClient.y = mouse.y;
-            }
-
-            function zoomInOrbitalCamera() {
-                if (plusDown) radius += zoomFactor;
-                else if (minusDown) radius -= zoomFactor;
-                if (radius < MIN_RADIUS) radius = MIN_RADIUS;
-                else if (radius > MAX_RADIUS) radius = MAX_RADIUS;
+                viewMatrix = orbitalCamera.getMatrix(glMatrix);
             }
 
             const buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
