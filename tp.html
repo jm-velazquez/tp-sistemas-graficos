@@ -11,7 +11,7 @@
     <body>
 
     	<center>    		            
-            <canvas id="my-canvas" width="1000" height="800">
+            <canvas id="my-canvas" width="1000" height="700">
             	Your browser does not support the HTML5 canvas element.
     		</canvas>    		
     	</center>
@@ -113,10 +113,6 @@
                 mat4.perspective(projMatrix,45, canvas.width / canvas.height, 0.1, null);
                 
                 mat4.identity(modelMatrix);
-                mat4.rotate(modelMatrix,modelMatrix, -1.57078, [1.0, 0.0, 0.0]);
-
-                mat4.identity(viewMatrix);
-                mat4.translate(viewMatrix,viewMatrix, [0.0, 0, -1000.0]);
             }
                     
                     
@@ -164,20 +160,20 @@
                 animate();
             }
 
-            let previousClientX = 0;
-            let previousClientY = 0;
-            let radius = 200;
-            let alpha = 0;
+            let radius = 1000;
+            const MIN_RADIUS = 100;
+            const MAX_RADIUS = 1000;
+            let alpha = Math.PI / 2;
             let beta = Math.PI / 2;
-            let speedFactor = 0.01;
+            let speedFactor = 0.005;
+            let zoomFactor = 5;
 
             let plusDown = false;
             let minusDown = false;
 
-            let zoomFactor = -20;
-
             let actualEvent;
 
+            let previousClient = {x: 0, y: 0};
             let mouse = {x: 0, y: 0};
 
             canvas.addEventListener("mousemove", (e) => {
@@ -195,50 +191,43 @@
                 else if (e.key === "-") minusDown = false;
             });
 
+            window.addEventListener("wheel", (e) => {
+                radius += e.deltaY;
+            });
+
             function animate() {
                 rotateOrbitalCamera();
                 zoomInOrbitalCamera();
             }
 
             function rotateOrbitalCamera() {
-                let deltaX = 0;
-                let deltaY = 0;
-
-                if (previousClientX) deltaX = mouse.x - previousClientX;
-                if (previousClientY) deltaY = mouse.y - previousClientY;
-
-                previousClientX = mouse.x;
-                previousClientY = mouse.y;
+                const deltaX = mouse.x - previousClient.x;
+                const deltaY = mouse.y - previousClient.y;
 
                 alpha = alpha + deltaX * speedFactor;
-                beta = beta + deltaY * speedFactor;
+                beta = beta - deltaY * speedFactor;
 
-                if (beta<0) beta=0;
-                if (beta>Math.PI) beta=Math.PI;
+                if (beta < 0.01) beta = 0.01;
+                if (beta > Math.PI / 2) beta = Math.PI / 2;
 
-                mat4.identity(modelMatrix);
-                mat4.translate(
-                    modelMatrix,
-                    modelMatrix,
-                    [
-                        radius * Math.sin(alpha) * Math.sin(beta),
-                        radius * Math.cos(beta),
-                        radius * Math.cos(alpha) * Math.sin(beta),
-                    ]
+                const origin = glMatrix.vec4.fromValues(
+                    radius * Math.cos(alpha) * Math.sin(beta),
+                    radius * Math.sin(alpha) * Math.sin(beta),
+                    radius * Math.cos(beta),
                 );
+                const center = glMatrix.vec4.fromValues(0,0,0);
+                const up = glMatrix.vec4.fromValues(0,0,1);
+                glMatrix.mat4.lookAt(viewMatrix, origin, center, up);
+
+                previousClient.x = mouse.x;
+                previousClient.y = mouse.y;
             }
 
             function zoomInOrbitalCamera() {
-                if (plusDown) {
-                    zoomFactor += 2;
-                    if (zoomFactor > -100) zoomFactor = -100;
-                } else if (minusDown) {
-                    zoomFactor -= 2;
-                    if (zoomFactor < -1000) zoomFactor = -1000;
-                }
-
-                mat4.identity(viewMatrix);
-                mat4.translate(viewMatrix,viewMatrix, [0, 0, zoomFactor]);
+                if (plusDown) radius += zoomFactor;
+                else if (minusDown) radius -= zoomFactor;
+                if (radius < MIN_RADIUS) radius = MIN_RADIUS;
+                else if (radius > MAX_RADIUS) radius = MAX_RADIUS;
             }
 
             const buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
