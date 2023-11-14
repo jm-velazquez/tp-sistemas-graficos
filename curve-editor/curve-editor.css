@@ -1,0 +1,28 @@
+/* Estilos CSS para personalizar el editor */
+#editor-container {
+    position: absolute;
+    top:100px;
+    left:100px;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+#editor-container canvas {
+    border: 1px solid #000;
+    position: relative;
+}
+
+#editor-container .toolbar {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #f0f0f0;
+}
+
+#editor-container button {
+    margin-bottom: 10px;
+}

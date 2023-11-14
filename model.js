@@ -32,12 +32,24 @@ export class Model {
         glMatrix.mat4.scale(this.modelMatrix, this.modelMatrix, this.scalingVector);
     }
 
+    getWorldCoordinates(parentMatrix) {
+        this.updateModelMatrix();
+        let matrix = glMatrix.mat4.create();
+        glMatrix.mat4.multiply(matrix, parentMatrix, this.modelMatrix);
+
+        const worldCoordinates = glMatrix.vec4.fromValues(0,0,0,1);
+        glMatrix.vec4.transformMat4(worldCoordinates, worldCoordinates, matrix);
+        
+        const childrenWorldCoordinates = this.children.map(child => child.getWorldCoordinates(matrix));
+        childrenWorldCoordinates.unshift(worldCoordinates);
+        return childrenWorldCoordinates;
+    }
 
     draw(gl, glMatrix, glProgram, parentMatrix, viewMatrix, projMatrix) {
         this.updateModelMatrix();
-
         let matrix = glMatrix.mat4.create();
         glMatrix.mat4.multiply(matrix, parentMatrix, this.modelMatrix);
+
         if (this.drawMode && this.positionBuffer && this.normalBuffer && this.indexBuffer) {
             let normalMatrix = glMatrix.mat4.create();
             glMatrix.mat4.identity(normalMatrix);

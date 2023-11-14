@@ -28,6 +28,8 @@ export function getSidewalk(gl, glMatrix) {
 		squircleArrays.positionArray,
 		squircleArrays.normalArray,
 		[level0Matrix, level1Matrix],
+		false,
+		true,
 	);
 	return new Model(
 		gl.TRIANGLE_STRIP,

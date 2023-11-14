@@ -35,6 +35,8 @@ export function getChasis(gl, glMatrix) {
 		baseTrapezoidArrays.positionArray,
 		baseTrapezoidArrays.normalArray,
 		[level0Matrix, level1MatrixBase],
+		true,
+		true,
 	);
 	const carBase = new Model(
 		gl.TRIANGLE_STRIP,
@@ -58,6 +60,8 @@ export function getChasis(gl, glMatrix) {
 		topTrapezoidArrays.positionArray,
 		topTrapezoidArrays.normalArray,
 		[level0Matrix, level1MatrixTop],
+		true,
+		true,
 	);
 	const carTop = new Model(
 		gl.TRIANGLE_STRIP,

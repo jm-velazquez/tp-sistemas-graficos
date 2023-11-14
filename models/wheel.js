@@ -29,6 +29,8 @@ export function getWheel(gl, glMatrix) {
 		circleArrays.positionArray,
 		circleArrays.normalArray,
 		[level0Matrix, level1Matrix],
+		true,
+		true,
 	);
 	return new Model(
 		gl.TRIANGLE_STRIP,

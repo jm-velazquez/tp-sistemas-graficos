@@ -2,9 +2,9 @@ import { getGlBuffersFromBuffers } from "./gl/gl-buffers.js";
 
 function getIndexBuffer(rows, columns) {
     let index = [];
-    for (var i = 0; i < rows - 1; i++) {
+    for (let i = 0; i < rows - 1; i++) {
         index.push(i * columns);
-        for (var j = 0; j < columns - 1; j++) {
+        for (let j = 0; j < columns - 1; j++) {
             index.push(i * columns + j);
             index.push((i + 1) * columns + j);
             index.push(i * columns + j + 1);
@@ -15,32 +15,8 @@ function getIndexBuffer(rows, columns) {
     return index;
 }
 
-function generateSurfaceBuffers(surface, rows, columns) {
-    let positionBuffer = [];
-    let normalBuffer = [];
-    let uvBuffer = [];
-    for (let i=0; i <= rows; i++) {
-        for (let j=0; j <= columns; j++) {
-            let u = j/columns;
-            let v = i/rows;
-
-            let pos = surface.getPosition(u,v);
-            positionBuffer.push(pos[0], pos[1], pos[2]);
-
-            let normal = surface.getNormal(u,v);
-            normalBuffer.push(normal[0], normal[1], normal[2]);
-
-            let uvs = surface.getTextureCoordinates(u,v);
-            uvBuffer.push(uvs[0], uvs[1]);
-        }
-    }
-
-    const indexBuffer = getIndexBuffer(rows, columns);
-
-    return getGlBuffersFromBuffers(positionBuffer, normalBuffer, uvBuffer, indexBuffer);
-}
-
-export function generateSweepSurface(gl, glMatrix, positionVectors, normalVectors, levelMatrices) {
+export function generateSweepSurface(gl, glMatrix, positionVectors,
+    normalVectors, levelMatrices, withBottomCover, withTopCover) {
 	let positionBuffer = [];
 	let normalBuffer = [];
 
@@ -60,12 +36,21 @@ export function generateSweepSurface(gl, glMatrix, positionVectors, normalVector
     }
 
     let bottomBuffers, topBuffers = null;
-    [bottomBuffers, topBuffers] = generateTopAndBottomBuffers(positionVectors, levelMatrices);
+    [bottomBuffers, topBuffers] = generateTopAndBottomBuffers(positionVectors, levelMatrices, withBottomCover, withTopCover);
 
-    positionBuffer = bottomBuffers.positionBuffer.concat(positionBuffer, topBuffers.positionBuffer);
-    normalBuffer = bottomBuffers.normalBuffer.concat(normalBuffer, topBuffers.normalBuffer);
+    if (withBottomCover) {
+        positionBuffer = bottomBuffers.positionBuffer.concat(positionBuffer);
+        normalBuffer = bottomBuffers.normalBuffer.concat(normalBuffer);
+    }
+    if (withTopCover) {
+        positionBuffer = positionBuffer.concat(topBuffers.positionBuffer);
+        normalBuffer = normalBuffer.concat(topBuffers.normalBuffer);
+    }
 
-	let indexBuffer = getIndexBuffer(levelMatrices.length + 4, positionVectors.length);
+	let indexBuffer = getIndexBuffer(
+        levelMatrices.length + 2 * withBottomCover + 2 * withTopCover,
+        positionVectors.length
+    );
     return getGlBuffersFromBuffers(gl, positionBuffer, normalBuffer, [], indexBuffer);
 }
 
@@ -76,56 +61,65 @@ function getAveragePosition(positionVectors) {
     return result;
 }
 
-function generateTopAndBottomBuffers(positionVectors, levelMatrices) {
+function generateTopAndBottomBuffers(positionVectors, levelMatrices, withBottomCover, withTopCover) {
     let averagePosition = getAveragePosition(positionVectors);
     let bottomPositionBuffer = [];
     let bottomNormalBuffer = [];
-    let bottomAveragePosition = glMatrix.vec4.create();
 
-    let bottomNormalVector = glMatrix.vec4.fromValues(0,0,-1,1);
-    glMatrix.vec4.transformMat4(bottomNormalVector, bottomNormalVector, levelMatrices[0]);
-    glMatrix.vec4.transformMat4(bottomAveragePosition, averagePosition, levelMatrices[0]);
-    glMatrix.vec4.normalize(bottomNormalVector, bottomNormalVector);
-    for (let i = 0; i < positionVectors.length; i++) {
-        bottomPositionBuffer.push(
-            bottomAveragePosition[0], bottomAveragePosition[1], bottomAveragePosition[2],
-        );
-        bottomNormalBuffer.push(bottomNormalVector[0], bottomNormalVector[1], bottomNormalVector[2]);
+    if (withBottomCover) {
+        // Bottom Normal Vector
+        let bottomNormalVector = glMatrix.vec4.fromValues(0,0,-1,1);
+        glMatrix.vec4.transformMat4(bottomNormalVector, bottomNormalVector, levelMatrices[0]);
+        glMatrix.vec4.normalize(bottomNormalVector, bottomNormalVector);
+        // Bottom Center Vertex Row
+        let bottomAveragePosition = glMatrix.vec4.create();
+        glMatrix.vec4.transformMat4(bottomAveragePosition, averagePosition, levelMatrices[0]);
+        for (let i = 0; i < positionVectors.length; i++) {
+            bottomPositionBuffer.push(
+                bottomAveragePosition[0], bottomAveragePosition[1], bottomAveragePosition[2],
+            );
+            bottomNormalBuffer.push(bottomNormalVector[0], bottomNormalVector[1], bottomNormalVector[2]);
+        }
+
+        // Bottom Shape Vertex (with same normal vector as bottom center)
+        positionVectors.forEach(positionVector => {
+            const newPositionVector = glMatrix.vec4.create();
+            glMatrix.vec4.transformMat4(newPositionVector, positionVector, levelMatrices[0]);
+            bottomPositionBuffer.push(
+                newPositionVector[0], newPositionVector[1], newPositionVector[2],
+            );
+            bottomNormalBuffer.push(bottomNormalVector[0], bottomNormalVector[1], bottomNormalVector[2]);
+        });
     }
-
-    positionVectors.forEach(positionVector => {
-        const newPositionVector = glMatrix.vec4.create();
-        glMatrix.vec4.transformMat4(newPositionVector, positionVector, levelMatrices[0]);
-        bottomPositionBuffer.push(
-            newPositionVector[0], newPositionVector[1], newPositionVector[2],
-        );
-        bottomNormalBuffer.push(bottomNormalVector[0], bottomNormalVector[1], bottomNormalVector[2]);
-    });
 
     let topPositionBuffer = [];
     let topNormalBuffer = [];
-    let topNormalVector = glMatrix.vec4.fromValues(0,0,1,1);
-    glMatrix.vec4.transformMat4(topNormalVector, topNormalVector, levelMatrices[levelMatrices.length - 1]);
-    glMatrix.vec4.normalize(topNormalVector, topNormalVector);
-    positionVectors.forEach(positionVector => {
-        const newPositionVector = glMatrix.vec4.create();
-        glMatrix.vec4.transformMat4(newPositionVector, positionVector, levelMatrices[levelMatrices.length - 1]);
-        topPositionBuffer.push(
-            newPositionVector[0], newPositionVector[1], newPositionVector[2],
-        );
-        topNormalBuffer.push(topNormalVector[0], topNormalVector[1], topNormalVector[2]);
-    });
-    const newAveragePosition = glMatrix.vec4.create();
-    glMatrix.vec4.transformMat4(newAveragePosition, averagePosition, levelMatrices[levelMatrices.length - 1]);
-    
-    
 
-    for (let i = 0; i < positionVectors.length; i++) {
-        topPositionBuffer.push(
-            newAveragePosition[0], newAveragePosition[1], newAveragePosition[2],
-        );
-        topNormalBuffer.push(topNormalVector[0], topNormalVector[1], topNormalVector[2]);
+    if (withTopCover) {
+        // Top Normal Vector
+        let topNormalVector = glMatrix.vec4.fromValues(0,0,1,1);
+        glMatrix.vec4.transformMat4(topNormalVector, topNormalVector, levelMatrices[levelMatrices.length - 1]);
+        glMatrix.vec4.normalize(topNormalVector, topNormalVector);
+        // Top Shape Vertex (with same normal vector as top center)
+        positionVectors.forEach(positionVector => {
+            const newPositionVector = glMatrix.vec4.create();
+            glMatrix.vec4.transformMat4(newPositionVector, positionVector, levelMatrices[levelMatrices.length - 1]);
+            topPositionBuffer.push(
+                newPositionVector[0], newPositionVector[1], newPositionVector[2],
+            );
+            topNormalBuffer.push(topNormalVector[0], topNormalVector[1], topNormalVector[2]);
+        });
+        // Top Center Vertex Row
+        const newAveragePosition = glMatrix.vec4.create();
+        glMatrix.vec4.transformMat4(newAveragePosition, averagePosition, levelMatrices[levelMatrices.length - 1]);
+        for (let i = 0; i < positionVectors.length; i++) {
+            topPositionBuffer.push(
+                newAveragePosition[0], newAveragePosition[1], newAveragePosition[2],
+            );
+            topNormalBuffer.push(topNormalVector[0], topNormalVector[1], topNormalVector[2]);
+        }
     }
+    
     return [
         {
             positionBuffer: bottomPositionBuffer,

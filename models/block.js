@@ -3,8 +3,8 @@ import { getSidewalk, SIDEWALK_HEIGHT } from "./sidewalk.js";
 import { getGlBuffersFromBuffers } from "../gl/gl-buffers.js";
 import { Model } from "../model.js";
 
-const MAX_BUILDING_HEIGHT = 100;
-const MIN_BUILDING_HEIGHT = 20;
+const MAX_BUILDING_STORIES = 8;
+const STORY_HEIGHT = 10;
 const BUILDING_SIDE = 20;
 const INDEX_BUFFER_OFFSET = 24;
 const BUILDINGS_PER_BLOCK = 12;
@@ -12,7 +12,7 @@ const BUILDINGS_PER_BLOCK = 12;
 export function getBuildingBlockHeights() {
 	const buildingHeights = [];
 	for (let i = 0; i < BUILDINGS_PER_BLOCK; i++) {
-		buildingHeights.push(Math.random() * (MAX_BUILDING_HEIGHT - MIN_BUILDING_HEIGHT) + MIN_BUILDING_HEIGHT);
+		buildingHeights.push(Math.floor(Math.random() * (MAX_BUILDING_STORIES - 1)) * STORY_HEIGHT + STORY_HEIGHT);
 	}
 	return buildingHeights;
 }
