@@ -124,8 +124,8 @@
                     
             function initShaders() {
                 //get shader source
-                var fs_source = document.getElementById('shader-fs').innerHTML,
-                    vs_source = document.getElementById('shader-vs').innerHTML;
+                let fs_source = document.getElementById('shader-fs').innerHTML;
+                let vs_source = document.getElementById('shader-vs').innerHTML;
 
                 //compile shaders    
                 vertexShader = makeShader(vs_source, gl.VERTEX_SHADER);
@@ -149,7 +149,7 @@
             
             function makeShader(src, type){
                 //compile the vertex shader
-                var shader = gl.createShader(type);
+                let shader = gl.createShader(type);
                 gl.shaderSource(shader, src);
                 gl.compileShader(shader);
 
