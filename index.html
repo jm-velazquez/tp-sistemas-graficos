@@ -182,7 +182,7 @@
                 showEditor: () => {
 
                 },
-                lights: 4,
+                lights: 15,
                 pillars: 10,
             };
 
@@ -233,6 +233,7 @@
             let buildingHeightsPerBlock = [];
             let highwayLevels = []; 
             let emptyGrids = [];
+            let amountOfLights = app.lights;
 
             function generateSceneParameters() {
                 buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
@@ -247,6 +248,7 @@
                 bezierCurve.setControlPoints(controlPoints);
                 highwayLevels = bezierCurve.getPolygon();
                 emptyGrids = getEmptyGrids(highwayLevels);
+                amountOfLights = Math.floor(app.lights);
             }
 
             function createScene() {
@@ -257,7 +259,7 @@
                 const blockGrid = getBlockGrid(gl, glMatrix, buildingHeightsPerBlock, emptyGrids);
                 blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
-                const highway = getHighway(gl, glMatrix, highwayLevels);
+                const highway = getHighway(gl, glMatrix, highwayLevels, amountOfLights);
                 highway.rotationAxis = [1, 0, 0];
                 highway.rotationDegree = Math.PI  / 2;
                 highway.translationVector = [0, 0, 30];

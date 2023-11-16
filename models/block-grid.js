@@ -3,6 +3,7 @@ import { BLOCK_SIDE } from "./sidewalk.js";
 import { Model } from "../model.js";
 
 const STREET_WIDTH = 10;
+const MAXIMUM_DISTANCE_HIGHWAY_PARK2 = 7000;
 
 function distance2(a, b) {
 	return Math.pow((a[0] - b[0]), 2) + Math.pow((a[1] - b[1]), 2);
@@ -16,16 +17,15 @@ export function getEmptyGrids(levels) {
 		[110, 220], [110, 110], [110, 0], [110, -110], [110, -220],
 		[220, 220], [220, 110], [220, 0], [220, -110], [220, -220]
 	];
-	const emptyGrids = Array(25).fill(false);
+	let emptyBlocks = Array(25).fill(false);
 	levels.map(level => {
 		const distanceFromCenters = blockCenters.map(blockCenter => distance2(blockCenter, level));
-		const minDistanceFromCenters = Math.min(...distanceFromCenters);
-		if (minDistanceFromCenters < 7500) {
-			const emptyGridIndex = distanceFromCenters.indexOf(Math.min(...distanceFromCenters));
-			emptyGrids[emptyGridIndex] = true;
-		}
+		const emptyBlockIndexes = distanceFromCenters.map(
+				distance => distance < MAXIMUM_DISTANCE_HIGHWAY_PARK2
+		);
+		emptyBlocks = emptyBlocks.map((isCurrentlyEmpty, i) => isCurrentlyEmpty || emptyBlockIndexes[i]);
 	});
-	return emptyGrids;
+	return emptyBlocks;
 }
 
 export function getBuildingBlockHeightsPerBlock() {
