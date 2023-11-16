@@ -14,9 +14,14 @@ export class Circle {
 	getPositionAndNormalArrays(amountOfPoints) {
 		const increment = 1 / amountOfPoints;
 		const positionArray = [];
+		const normalArray = [];
 		for (let i = 0; i <= amountOfPoints; i++) {
-			positionArray.push(this.getPosition(i * increment));
+			const position = this.getPosition(i * increment);
+			const normal = glMatrix.vec4.create();
+			glMatrix.vec4.normalize(normal, position);
+			positionArray.push(position);
+			normalArray.push(normal);
 		}
-		return {positionArray, normalArray: positionArray};
+		return {positionArray, normalArray};
 	}
 }

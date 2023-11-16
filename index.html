@@ -61,14 +61,21 @@
 
         <script type="module">
             import { getCar } from "./models/car.js";
+            import { getHighway } from "./models/highway.js";
             import { getBlock, getBuildingBlockHeights } from "./models/block.js";
-            import { getBlockGrid, getBuildingBlockHeightsPerBlock } from "./models/block-grid.js";
+            import { getBlockGrid, getBuildingBlockHeightsPerBlock, getEmptyGrids } from "./models/block-grid.js";
             import { drawGrid } from "./models/grid.js";
             import { OrbitalCamera } from "./cameras/orbital-camera.js";
-            import { CurveEditor } from "./curve-editor/curve-editor.js";		
+            import { CurveEditor } from "./curve-editor/curve-editor.js";
+            import { Bezier2 } from "./curves/bezier.js";
             
-            const editor = new CurveEditor("editor-container", { width: 300, height: 300 });
-            editor.setControlPoints([[50,50],[300,50],[50,300],[300,300]])
+            const CURVE_EDITOR_SIDE = 300;
+
+            const editor = new CurveEditor(
+                "editor-container",
+                { width: CURVE_EDITOR_SIDE, height: CURVE_EDITOR_SIDE }
+            );
+            editor.setControlPoints([[0,0],[300,50],[50,300],[300,300]]);
 
             let mat4=glMatrix.mat4;
             let vec3=glMatrix.vec3;
@@ -198,14 +205,31 @@
             }
 
             const buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
+            let controlPoints = editor.getControlPoints();
+            controlPoints.unshift(controlPoints[0]);
+            controlPoints.push(controlPoints[controlPoints.length -1 ]);
+            controlPoints = controlPoints.map(point => [
+                (point[0] - CURVE_EDITOR_SIDE / 2) * (560 / 300),
+                (point[1] - CURVE_EDITOR_SIDE / 2) * (560 / 300),
+            ]);
+            const bezierCurve = new Bezier2();
+            bezierCurve.setControlPoints(controlPoints);
+            const levels = bezierCurve.getPolygon();
+            const emptyGrids = getEmptyGrids(levels);
 
             function createScene() {
                 drawGrid(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
                 const car = getCar(gl, glMatrix);
                 // car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
-                const blockGrid = getBlockGrid(gl, glMatrix, buildingHeightsPerBlock);
+                const blockGrid = getBlockGrid(gl, glMatrix, buildingHeightsPerBlock, emptyGrids);
                 blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+
+                const highway = getHighway(gl, glMatrix, levels);
+                highway.rotationAxis = [1, 0, 0];
+                highway.rotationDegree = Math.PI  / 2;
+                highway.translationVector = [0, 0, 30];
+                highway.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
             }
 
             window.onload=initWebGL;

@@ -53,7 +53,7 @@ function getAllBuildingBuffers(gl, buildingHeights) {
 	return allBuildingBuffers;
 }
 
-export function getBlock(gl, glMatrix, buildingHeights) {
+export function getBlock(gl, glMatrix, buildingHeights, empty) {
 	const allBuildingBuffers = getAllBuildingBuffers(gl, buildingHeights);
 	const glBlockBuffers = getGlBuffersFromBuffers(
 		gl,
@@ -69,7 +69,8 @@ export function getBlock(gl, glMatrix, buildingHeights) {
 		glBlockBuffers.glIndexBuffer
 	)
 	const sidewalk = getSidewalk(gl, glMatrix);
-	sidewalk.addChild(buildings);
-
+	if (!empty) {
+		sidewalk.addChild(buildings);
+	}
 	return sidewalk;
 }
