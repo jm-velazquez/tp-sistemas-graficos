@@ -69,6 +69,7 @@
             import { OrbitalCamera } from "./cameras/orbital-camera.js";
             import { CurveEditor } from "./curve-editor/curve-editor.js";
             import { Bezier2 } from "./curves/bezier.js";
+            import { getColumn } from "./models/column.js";
             
             const CURVE_EDITOR_SIDE = 300;
 
@@ -183,7 +184,7 @@
 
                 },
                 lights: 15,
-                pillars: 10,
+                columns: 10,
             };
 
             function GUI() {
@@ -195,7 +196,7 @@
 
                 const f2 = gui.addFolder('Parameters');
                 f2.add(app, 'lights', 4, 25).name("Lights");
-                f2.add(app, 'pillars', 4, 25).name("Pillars");
+                f2.add(app, 'columns', 4, 25).name("Columns");
                 f2.open();
             };
 
@@ -234,6 +235,7 @@
             let highwayLevels = []; 
             let emptyGrids = [];
             let amountOfLights = app.lights;
+            let amountOfColumns = app.columns;
 
             function generateSceneParameters() {
                 buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
@@ -249,6 +251,7 @@
                 highwayLevels = bezierCurve.getPolygon();
                 emptyGrids = getEmptyGrids(highwayLevels);
                 amountOfLights = Math.floor(app.lights);
+                amountOfColumns = Math.floor(app.columns);
             }
 
             function createScene() {
@@ -259,7 +262,7 @@
                 const blockGrid = getBlockGrid(gl, glMatrix, buildingHeightsPerBlock, emptyGrids);
                 blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
-                const highway = getHighway(gl, glMatrix, highwayLevels, amountOfLights);
+                const highway = getHighway(gl, glMatrix, highwayLevels, amountOfLights, amountOfColumns);
                 highway.rotationAxis = [1, 0, 0];
                 highway.rotationDegree = Math.PI  / 2;
                 highway.translationVector = [0, 0, 30];

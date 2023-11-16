@@ -5,6 +5,7 @@ import { generateSweepSurface } from "../surface-generator.js";
 import { Model } from "../model.js";
 import { LUT } from "../curves/look-up-table.js";
 import { getStreetLight } from "./street-light.js";
+import { getColumn } from "./column.js";
 
 function getLights(gl, glMatrix, levelMatrices, amountOfLights) {
 	const levels = levelMatrices.map(levelMatrix => [levelMatrix[12], levelMatrix[14]]);
@@ -29,7 +30,22 @@ function getLights(gl, glMatrix, levelMatrices, amountOfLights) {
 	return streetLights;
 }
 
-export function getHighway(gl, glMatrix, levels, amountOfLights) {
+function getColumns(gl, glMatrix, levels, amountOfColumns) {
+	const lut = new LUT(levels);
+	const distance = lut.getTotalDistance() / (amountOfColumns - 1);
+	
+	const columns = [];
+	for (let i = 0; i < amountOfColumns; i++) {
+		const column = getColumn(gl, glMatrix, 30);
+		const position = lut.getInterpolatedPoint(distance * i);
+		console.log(position);
+		column.translationVector = [position[0], 0, position[1]];
+		columns.push(column);
+	}
+	return columns;
+}
+
+export function getHighway(gl, glMatrix, levels, amountOfLights, amountOfColumns) {
 	const levelMatrices = generateLevelMatrices(glMatrix, levels);
 	const roadShape = new Rectangle(50, 4);
 	const roadArrays = roadShape.getPositionAndNormalArrays(glMatrix);
@@ -69,7 +85,12 @@ export function getHighway(gl, glMatrix, levels, amountOfLights) {
 		roadBuffers.glIndexBuffer,
 	);
 	highway.addChild(guardrail);
+
 	const streetLights = getLights(gl, glMatrix, levelMatrices, amountOfLights);
 	streetLights.forEach(streetLight => highway.addChild(streetLight));
+	
+	const columns = getColumns(gl, glMatrix, levels, amountOfColumns);
+	columns.forEach(column => highway.addChild(column));
+
 	return highway;
 }

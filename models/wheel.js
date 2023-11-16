@@ -7,14 +7,14 @@ import { Model } from "../model.js";
 import { generateSweepSurface } from "../surface-generator.js";
 
 export function getWheel(gl, glMatrix) {
-	let level0Matrix = glMatrix.mat4.fromValues(
+	const level0Matrix = glMatrix.mat4.fromValues(
 		1,0,0,0,
 		0,1,0,0,
 		0,0,1,0,
 		0,0,0,1
 	);
 
-	let level1Matrix = glMatrix.mat4.fromValues(
+	const level1Matrix = glMatrix.mat4.fromValues(
 		1,0,0,0,
 		0,1,0,0,
 		0,0,1,0,

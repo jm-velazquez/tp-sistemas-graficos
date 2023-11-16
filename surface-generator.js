@@ -54,6 +54,31 @@ export function generateSweepSurface(gl, glMatrix, positionVectors,
     return getGlBuffersFromBuffers(gl, positionBuffer, normalBuffer, [], indexBuffer);
 }
 
+export function generateRevolutionSurface(gl, glMatrix, positionVectors,
+    normalVectors, numberOfLevels, withBottomCover, withTopCover) {
+        const angleIncrement = 2 * Math.PI / numberOfLevels;
+
+        const levelMatrices = [];
+        
+        for (let i = 0; i < numberOfLevels + 1; i++) {
+            const angle = i * angleIncrement;
+            const tangent = glMatrix.vec3.create();
+            const normal = glMatrix.vec3.create();
+            glMatrix.vec3.rotateY(tangent, [0, 0, 1], [0, 0, 0], angle);
+            glMatrix.vec3.rotateY(normal, [1, 0, 0], [0, 0, 0], angle);
+            const levelMatrix = glMatrix.mat4.fromValues(
+                normal[0], normal[1], normal[2], 0,
+                0, 1, 0, 0,
+                tangent[0], tangent[1], tangent[2], 0,
+                0,0,0,1,
+            );
+            levelMatrices.push(levelMatrix);
+        }
+        console.log(levelMatrices);
+        return generateSweepSurface(gl, glMatrix, positionVectors, normalVectors,
+            levelMatrices, withBottomCover, withTopCover);
+    }
+
 function getAveragePosition(positionVectors) {
     let result = glMatrix.vec4.create();
     positionVectors.forEach(vector => glMatrix.vec4.add(result, result, vector));
