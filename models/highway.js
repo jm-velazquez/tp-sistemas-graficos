@@ -1,4 +1,4 @@
-import { generateLevelMatrices } from "../curves/level-matrix-generator.js";
+import { generateLevelMatrices, translateMatricesAlongNormalAxis } from "../curves/level-matrix-generator.js";
 import { Rectangle } from "../shapes/rectangle.js";
 import { Trapezoid } from "../shapes/trapezoid.js";
 import { generateSweepSurface } from "../surface-generator.js";
@@ -6,6 +6,8 @@ import { Model } from "../model.js";
 import { LUT } from "../curves/look-up-table.js";
 import { getStreetLight } from "./street-light.js";
 import { getColumn } from "./column.js";
+
+const ROAD_WIDTH = 50;
 
 function getLights(gl, glMatrix, levelMatrices, amountOfLights) {
 	const levels = levelMatrices.map(levelMatrix => [levelMatrix[12], levelMatrix[14]]);
@@ -45,9 +47,8 @@ function getColumns(gl, glMatrix, levels, amountOfColumns) {
 	return columns;
 }
 
-export function getHighway(gl, glMatrix, levels, amountOfLights, amountOfColumns) {
-	const levelMatrices = generateLevelMatrices(glMatrix, levels);
-	const roadShape = new Rectangle(50, 4);
+function getRoad(gl, glMatrix, levelMatrices) {
+	const roadShape = new Rectangle(ROAD_WIDTH, 4);
 	const roadArrays = roadShape.getPositionAndNormalArrays(glMatrix);
 	const roadBuffers = generateSweepSurface(
 		gl,
@@ -58,6 +59,16 @@ export function getHighway(gl, glMatrix, levels, amountOfLights, amountOfColumns
 		true,
 		true
 	);
+
+	return new Model(
+		gl.TRIANGLE_STRIP,
+		roadBuffers.glPositionBuffer,
+		roadBuffers.glNormalBuffer,
+		roadBuffers.glIndexBuffer,
+	);
+}
+
+function getGuardrail(gl, glMatrix, levelMatrices) {
 	const guardrailShape = new Trapezoid(5,2.5,2);
 	const guardrailArrays = guardrailShape.getPositionAndNormalArrays();
 	const guardrailBuffers = generateSweepSurface(
@@ -77,20 +88,30 @@ export function getHighway(gl, glMatrix, levels, amountOfLights, amountOfColumns
 		guardrailBuffers.glIndexBuffer,
 	);
 	guardrail.translationVector = [0, 3, 0];
+	return guardrail;
+}
 
-	const highway = new Model(
-		gl.TRIANGLE_STRIP,
-		roadBuffers.glPositionBuffer,
-		roadBuffers.glNormalBuffer,
-		roadBuffers.glIndexBuffer,
-	);
-	highway.addChild(guardrail);
+export function getHighway(gl, glMatrix, levels, amountOfLights, amountOfColumns) {
+	const levelMatrices = generateLevelMatrices(glMatrix, levels);
+	
+	const road = getRoad(gl, glMatrix, levelMatrices);
+
+	const middleGuardrail = getGuardrail(gl, glMatrix, levelMatrices);
+	road.addChild(middleGuardrail);
+
+	const rightGuardrailMatrices = translateMatricesAlongNormalAxis(glMatrix, levelMatrices, ROAD_WIDTH / 2);
+	const rightGuardrail = getGuardrail(gl, glMatrix, rightGuardrailMatrices);
+	road.addChild(rightGuardrail);
+
+	const leftGuardrailMatrices = translateMatricesAlongNormalAxis(glMatrix, levelMatrices, - ROAD_WIDTH / 2);
+	const leftGuardrail = getGuardrail(gl, glMatrix, leftGuardrailMatrices);
+	road.addChild(leftGuardrail);
 
 	const streetLights = getLights(gl, glMatrix, levelMatrices, amountOfLights);
-	streetLights.forEach(streetLight => highway.addChild(streetLight));
+	streetLights.forEach(streetLight => road.addChild(streetLight));
 	
 	const columns = getColumns(gl, glMatrix, levels, amountOfColumns);
-	columns.forEach(column => highway.addChild(column));
+	columns.forEach(column => road.addChild(column));
 
-	return highway;
+	return road;
 }

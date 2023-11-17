@@ -50,3 +50,24 @@ function buildLevelMatrix(glMatrix, tangent, normal, binormal, position) {
 		position[0], 0, position[1], 1,
 	);
 }
+
+export function translateMatrixAlongNormalAxis(glMatrix, levelMatrix, offset) {
+	// levelMatrix[0-2] = normal, normalized
+	const newPosition = [
+		levelMatrix[12] + offset * levelMatrix[0],
+		levelMatrix[13] + offset * levelMatrix[1],
+		levelMatrix[14] + offset * levelMatrix[2],
+	];
+	const newLevelMatrix = glMatrix.mat4.create();
+	glMatrix.mat4.copy(newLevelMatrix, levelMatrix);
+	newLevelMatrix[12] = newPosition[0];
+	newLevelMatrix[13] = newPosition[1];
+	newLevelMatrix[14] = newPosition[2];
+	return newLevelMatrix;
+}
+
+export function translateMatricesAlongNormalAxis(glMatrix, levelMatrices, offset) {
+	return levelMatrices.map(
+		levelMatrix => translateMatrixAlongNormalAxis(glMatrix, levelMatrix, offset)
+	);
+}
