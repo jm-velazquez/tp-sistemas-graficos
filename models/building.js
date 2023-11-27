@@ -2,6 +2,7 @@ export function getBuildingBuffers(gl, width, length, height,
 	xOffset = 0, yOffset = 0, zOffset = 0, indexBufferOffset = 0) {
 	const positionBuffer = [];
 	const normalBuffer = [];
+	const uvBuffer = [];
 	let indexBuffer = [];
 	positionBuffer.push(
 		xOffset,yOffset,zOffset,														// 0
@@ -57,6 +58,33 @@ export function getBuildingBuffers(gl, width, length, height,
 		1, 0, 0,		// 23
 	);
 
+	uvBuffer.push(
+		0, 0,				// 0
+		0, 0,				// 1
+		1, 0,				// 2
+		1, 0,				// 3
+		1, 0,				// 4
+		0, 0,				// 5
+		0, 1,				// 6
+		1, 0,				// 7
+		0, 0,				// 8
+		1, 1,				// 9
+		0, 0,				// 10
+		1, 0,				// 11
+		0, 0,				// 12
+		0, 1,				// 13
+		1, 1,				// 14
+		0, 1,				// 15
+		1, 1,				// 16
+		0, 1,				// 17
+		1, 0,				// 18
+		1, 1,				// 19
+		0, 1,				// 20
+		1, 1,				// 21
+		0, 1,				// 22
+		1, 1,				// 23
+	);
+
 	indexBuffer.push(
 		0,3,6,
 		3,6,9,
@@ -72,5 +100,5 @@ export function getBuildingBuffers(gl, width, length, height,
 		15,18,21,
 	);
 	indexBuffer = indexBuffer.map(x => x + indexBufferOffset);
-	return {positionBuffer, normalBuffer, indexBuffer};
+	return {positionBuffer, normalBuffer, uvBuffer, indexBuffer};
 }

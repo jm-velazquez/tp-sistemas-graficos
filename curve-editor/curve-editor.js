@@ -2,6 +2,8 @@
 import { Bezier2 } from "../curves/bezier.js";
 
 export class CurveEditor {
+    isVisible = false;
+
     constructor(containerId, resolution) {
         // Contenedor del editor
         this.container = document.getElementById(containerId);
@@ -241,6 +243,11 @@ export class CurveEditor {
         }
 
         return closestNode;
+    }
+
+    toggleVisibility() {
+        this.container.style.visibility = this.isVisible ? "visible" : "hidden";
+        this.isVisible = !this.isVisible;
     }
 
 }

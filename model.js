@@ -2,6 +2,7 @@
 export class Model {
     positionBuffer = null;
     normalBuffer = null;
+    uvBuffer = null;
     indexBuffer = null;
 
     children = [];
@@ -14,11 +15,12 @@ export class Model {
 
     drawMode = null;
 
-    constructor(drawMode = null, positionBuffer = null, normalBuffer = null, indexBuffer = null) {
+    constructor(drawMode = null, positionBuffer = null, normalBuffer = null, indexBuffer = null, uvBuffer = null) {
         this.drawMode = drawMode;
         this.positionBuffer = positionBuffer;
         this.normalBuffer = normalBuffer;
         this.indexBuffer = indexBuffer;
+        this.uvBuffer = uvBuffer;
         glMatrix.mat4.identity(this.modelMatrix);
     }
 
@@ -51,9 +53,7 @@ export class Model {
         glMatrix.mat4.multiply(matrix, parentMatrix, this.modelMatrix);
 
         if (this.drawMode && this.positionBuffer && this.normalBuffer && this.indexBuffer) {
-            let normalMatrix = glMatrix.mat4.create();
-            glMatrix.mat4.identity(normalMatrix);
-            glMatrix.mat4.multiply(normalMatrix, viewMatrix, this.modelMatrix);
+            let normalMatrix = glMatrix.mat4.clone(matrix);
             glMatrix.mat4.invert(normalMatrix, normalMatrix);
             glMatrix.mat4.transpose(normalMatrix,normalMatrix);
 

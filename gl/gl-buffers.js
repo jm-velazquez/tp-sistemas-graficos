@@ -7,10 +7,14 @@ export function getGlBuffersFromBuffers(gl, positionBuffer, normalBuffer, uvBuff
   gl.bindBuffer(gl.ARRAY_BUFFER, glNormalBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalBuffer), gl.STATIC_DRAW);
 
+  const glUVBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, glUVBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvBuffer), gl.STATIC_DRAW);
+
   const glIndexBuffer = gl.createBuffer();
   glIndexBuffer.number_vertex_point = indexBuffer.length;
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glIndexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexBuffer), gl.STATIC_DRAW);
   // TODO: Add uvBuffer
-  return {glPositionBuffer, glNormalBuffer, uvBuffer, glIndexBuffer}
+  return {glPositionBuffer, glNormalBuffer, glUVBuffer, glIndexBuffer}
 }

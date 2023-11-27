@@ -1,11 +1,10 @@
 /* Estilos CSS para personalizar el editor */
 #editor-container {
     position: absolute;
-    top:100px;
-    left:100px;
+    bottom:0px;
+    left:0px;
     display: flex;
     flex-direction: row;
-    position: relative;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */

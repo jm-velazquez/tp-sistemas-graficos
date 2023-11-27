@@ -44,10 +44,11 @@ function getAllBuildingBuffers(gl, buildingHeights) {
 			index * INDEX_BUFFER_OFFSET
 		)
 	);
-	const allBuildingBuffers = {positionBuffer: [], normalBuffer: [], indexBuffer: []};
+	const allBuildingBuffers = {positionBuffer: [], normalBuffer: [], uvBuffer: [], indexBuffer: []};
 	buildingBuffers.forEach(buffers => {
 		allBuildingBuffers.positionBuffer.push(...buffers.positionBuffer);
 		allBuildingBuffers.normalBuffer.push(...buffers.normalBuffer);
+		allBuildingBuffers.uvBuffer.push(...buffers.uvBuffer);
 		allBuildingBuffers.indexBuffer.push(...buffers.indexBuffer);
 	});
 	return allBuildingBuffers;
@@ -59,15 +60,16 @@ export function getBlock(gl, glMatrix, buildingHeights, empty) {
 		gl,
 		allBuildingBuffers.positionBuffer,
 		allBuildingBuffers.normalBuffer,
-		[],
+		allBuildingBuffers.uvBuffer,
 		allBuildingBuffers.indexBuffer
 	);
 	const buildings = new Model(
 		gl.TRIANGLES,
 		glBlockBuffers.glPositionBuffer,
 		glBlockBuffers.glNormalBuffer,
-		glBlockBuffers.glIndexBuffer
-	)
+		glBlockBuffers.glIndexBuffer,
+		glBlockBuffers.glUVBuffer,
+	);
 	const sidewalk = getSidewalk(gl, glMatrix);
 	if (!empty) {
 		sidewalk.addChild(buildings);
