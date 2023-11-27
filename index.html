@@ -67,9 +67,11 @@
             import { getBlockGrid, getBuildingBlockHeightsPerBlock, getEmptyGrids } from "./models/block-grid.js";
             import { drawGrid } from "./models/grid.js";
             import { OrbitalCamera } from "./cameras/orbital-camera.js";
+            import { FirstPersonCamera } from "./cameras/first-person-camera.js";
             import { CurveEditor } from "./curve-editor/curve-editor.js";
             import { Bezier2 } from "./curves/bezier.js";
             import { getColumn } from "./models/column.js";
+            import { CarPositions } from "./animations/car-animations.js";
             
             const CURVE_EDITOR_SIDE = 300;
 
@@ -201,41 +203,69 @@
             };
 
             const orbitalCamera = new OrbitalCamera();
+            const streetCamera = new FirstPersonCamera(glMatrix, [0,0,0]);
+            const highwayCamera = new FirstPersonCamera(glMatrix, [0,0,32]);
+
+            const keysPressed = {
+                plus: false,
+                minus: false,
+                w: false,
+                a: false,
+                s: false,
+                d: false,
+                shift: false,
+            };
+
+            let cameraMode = "orbital";
 
             canvas.addEventListener("mousemove", (e) => {
-                orbitalCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
+                if (cameraMode === "orbital") {
+                    orbitalCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
+                } else if (cameraMode === "street") {
+                    streetCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
+                } else {
+                    highwayCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
+                }
+                    
             });
 
             window.addEventListener("keydown", (e) => {
-                if (e.key === "=") orbitalCamera.zoomIn();
-                else if (e.key === "-") orbitalCamera.zoomOut();
-                else if (e.key === "w") sidewalkCamera.setMovingForward(true);
-                else if (e.key === "s") sidewalkCamera.setMovingBack(true);
-                else if (e.key === "a") sidewalkCamera.setMovingLeft(true);
-                else if (e.key === "d") sidewalkCamera.setMovingRight(true);
+                if (e.key === "=") keysPressed.plus = true;
+                else if (e.key === "-") keysPressed.minus = true;
+                else if (e.key === "w") keysPressed.w = true;
+                else if (e.key === "s") keysPressed.s = true;
+                else if (e.key === "a") keysPressed.a = true;
+                else if (e.key === "d") keysPressed.d = true;
+                else if (e.shiftKey) keysPressed.shift = true;
+                else if (e.key === "1") cameraMode = "orbital";
+                else if (e.key === "2") cameraMode = "street";
+                else if (e.key === "3") cameraMode = "highway";
             });
 
             window.addEventListener("keyup", (e) => {
-                if (e.key === "w") sidewalkCamera.setMovingForward(false);
-                else if (e.key === "s") sidewalkCamera.setMovingBack(false);
-                else if (e.key === "a") sidewalkCamera.setMovingLeft(false);
-                else if (e.key === "d") sidewalkCamera.setMovingRight(false);
+                if (e.key === "=") keysPressed.plus = false;
+                else if (e.key === "-") keysPressed.minus = false;
+                else if (e.key === "w") keysPressed.w = false;
+                else if (e.key === "s") keysPressed.s = false;
+                else if (e.key === "a") keysPressed.a = false;
+                else if (e.key === "d") keysPressed.d = false;
+                else if (!e.shiftKey) keysPressed.shift = false;
             });
 
             window.addEventListener("wheel", (e) => {
-                if (e.deltaY > 0) orbitalCamera.zoomOut();
-                else if (e.deltaY < 0) orbitalCamera.zoomIn();
+                if (cameraMode === "orbital") {
+                    if (e.deltaY > 0) orbitalCamera.zoomOut();
+                    else if (e.deltaY < 0) orbitalCamera.zoomIn();
+                }
             });
 
-            function animate() {
-                viewMatrix = orbitalCamera.getMatrix(glMatrix);
-            }
 
             let buildingHeightsPerBlock = [];
             let highwayLevels = []; 
             let emptyGrids = [];
             let amountOfLights = app.lights;
             let amountOfColumns = app.columns;
+            let carPositions = null;
 
             function generateSceneParameters() {
                 buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
@@ -252,22 +282,49 @@
                 emptyGrids = getEmptyGrids(highwayLevels);
                 amountOfLights = Math.floor(app.lights);
                 amountOfColumns = Math.floor(app.columns);
+
+                carPositions = new CarPositions(glMatrix, highwayLevels);
             }
 
             function createScene() {
                 drawGrid(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
                 const car = getCar(gl, glMatrix);
-                // car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+                car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
                 const blockGrid = getBlockGrid(gl, glMatrix, buildingHeightsPerBlock, emptyGrids);
                 blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
-                const highway = getHighway(gl, glMatrix, highwayLevels, amountOfLights, amountOfColumns);
+                const highway = getHighway(gl, glMatrix, highwayLevels, amountOfLights, amountOfColumns, carPositions);
                 highway.rotationAxis = [1, 0, 0];
                 highway.rotationDegree = Math.PI  / 2;
                 highway.translationVector = [0, 0, 30];
                 highway.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
             }
+
+            function animate() {
+                if (cameraMode === "orbital") {
+                    if (keysPressed.plus) orbitalCamera.zoomIn();
+                    else if (keysPressed.minus) orbitalCamera.zoomOut();
+                    viewMatrix = orbitalCamera.getMatrix(glMatrix);
+                } else if (cameraMode === "street") {
+                    const running = keysPressed.shift;
+                    if (keysPressed.w) streetCamera.moveForward(glMatrix, running);
+                    if (keysPressed.a) streetCamera.moveLeft(glMatrix, running);
+                    if (keysPressed.s) streetCamera.moveBackwards(glMatrix, running);
+                    if (keysPressed.d) streetCamera.moveRight(glMatrix, running);
+                    viewMatrix = streetCamera.getMatrix(glMatrix);   
+                } else {
+                    const running = keysPressed.shift;
+                    if (keysPressed.w) highwayCamera.moveForward(glMatrix, running);
+                    if (keysPressed.a) highwayCamera.moveLeft(glMatrix, running);
+                    if (keysPressed.s) highwayCamera.moveBackwards(glMatrix, running);
+                    if (keysPressed.d) highwayCamera.moveRight(glMatrix, running);
+                    viewMatrix = highwayCamera.getMatrix(glMatrix);  
+                }
+                
+                carPositions.getNewPositionsAndRotationAngles(glMatrix);   
+            }
+
             GUI();
             window.onload=initWebGL;
 

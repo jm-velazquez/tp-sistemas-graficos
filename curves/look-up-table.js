@@ -34,16 +34,18 @@ export class LUT {
 		alert("Distance out of bounds");
 	}
 
-	getClosestPoint(distance) {
-		if (distance === 0) return this.pointsByDistance[0];
+	getClosestPointAndIndex(distance) {
+		if (distance === 0) return [this.pointsByDistance[0], 0];
 		let lastDistance = 0;
+		let index = -1;
 		for (let currentDistance in this.pointsByDistance) {
 			if (distance >= lastDistance && distance <= currentDistance) {
-				return this.pointsByDistance[lastDistance];
+				return [this.pointsByDistance[lastDistance], index];	
 			}
+			index += 1;
 			lastDistance = currentDistance;
 		}
-		// alert("Distance out of bounds");
+		alert("Distance out of bounds");
 	}
 
 	getTotalDistance() {

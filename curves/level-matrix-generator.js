@@ -71,3 +71,27 @@ export function translateMatricesAlongNormalAxis(glMatrix, levelMatrices, offset
 		levelMatrix => translateMatrixAlongNormalAxis(glMatrix, levelMatrix, offset)
 	);
 }
+
+export function reverseLevelMatrix(glMatrix, levelMatrix) {
+	const newLevelMatrix = glMatrix.mat4.create();
+	glMatrix.mat4.copy(newLevelMatrix, levelMatrix);
+	const indexesToReverse = [
+		0, 1, 2,		// Normal
+		8, 9, 10,		// Tangent
+	];
+	indexesToReverse.forEach(index => newLevelMatrix[index] = - newLevelMatrix[index]);
+	return newLevelMatrix;
+}
+
+export function reverseLevelMatrices(glMatrix, levelMatrices) {
+	return levelMatrices.reverse()
+		.map(levelMatrix => reverseLevelMatrix(glMatrix, levelMatrix));
+}
+
+export function getPositionFromLevelMatrix(levelMatrix) {
+	return levelMatrix.slice(12, 15);
+}
+
+export function getPositionsFromLevelMatrices(levelMatrices) {
+	return levelMatrices.map(levelMatrix => getPositionFromLevelMatrix(levelMatrix));
+}

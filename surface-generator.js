@@ -74,7 +74,6 @@ export function generateRevolutionSurface(gl, glMatrix, positionVectors,
             );
             levelMatrices.push(levelMatrix);
         }
-        console.log(levelMatrices);
         return generateSweepSurface(gl, glMatrix, positionVectors, normalVectors,
             levelMatrices, withBottomCover, withTopCover);
     }

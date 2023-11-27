@@ -1,71 +1,101 @@
-import { Model } from "../model.js";
-
-const SPEED_FACTOR = 5;
-const CAMERA_SPEED_FACTOR = 0.1;
+const PLAYER_HEIGHT = 2;
+const WALKING_VELOCITY = 0.3;
+const RUNNING_VELOCITY = 0.7;
+const SENSITIVITY = 0.01;
 
 export class FirstPersonCamera {
-	// Movement
-	camera = new Model();
-	focus = new Model();
-	isMoving = {forward: false, back: false, left: false, right: false};
+    playerPosition;
+    targetPosition;
+    alpha = 0;
+    beta = 0;
+	currentPosition = {x: 0, y: 0};
+	previousPosition = {x: 0, y: 0};
 
-	// Look around
-	currentPositionX = 0;
-	previousPositionX = 0;
+    constructor(glMatrix, startingPosition) {
+        this.playerPosition = glMatrix.vec3.fromValues(
+            startingPosition[0],
+            startingPosition[1],
+            startingPosition[2] + PLAYER_HEIGHT);
+        this.lookAround(glMatrix, 0, 0);
+    }
 
-	constructor(glMatrix, startingPosition) {
-		this.focus.translationVector = glMatrix.vec4.fromValues(10, 0, 0, 1);
-		this.camera.addChild(this.focus);
-		this.camera.translationVector = startingPosition;
-		this.camera.rotationAxis = glMatrix.vec4.fromValues(0,0,1,1);
-	}
+    getMatrix(glMatrix) {
+		const deltaX = this.currentPosition.x - this.previousPosition.x;
+		const deltaY = this.currentPosition.y - this.previousPosition.y;
+		
+		this.previousPosition.x = this.currentPosition.x;
+		this.previousPosition.y = this.currentPosition.y;
 
-	setMovingForward(isMovingForward) {
-		this.isMoving.forward = isMovingForward;
-	}
+        this.lookAround(glMatrix, deltaX, deltaY);
 
-	setMovingBack(isMovingBack) {
-		this.isMoving.back = isMovingBack;
-	}
+        const matrix = glMatrix.mat4.create();
+        glMatrix.mat4.lookAt(matrix, this.playerPosition, this.targetPosition, [0,0,1]);
+        return matrix;
+    }
 
-	setMovingLeft(isMovingLeft) {
-		this.isMoving.left = isMovingLeft;
-	}
+    getPlayerForwardDirection(glMatrix) {
+        const forwardDirection = glMatrix.vec3.fromValues(
+            this.targetPosition[0] - this.playerPosition[0],
+            this.targetPosition[1] - this.playerPosition[1],
+            0,
+        );
+        glMatrix.vec3.normalize(forwardDirection, forwardDirection);
+        return forwardDirection;
+    }
 
-	setMovingRight(isMovingRight) {
-		this.isMoving.right = isMovingRight;
-	}
+    getPlayerRightDirection(glMatrix) {
+        const forwardDirection = this.getPlayerForwardDirection(glMatrix);
+        const rightDirection = glMatrix.vec3.create();
+        glMatrix.vec3.rotateZ(rightDirection, forwardDirection, [0,0,0], - Math.PI / 2);
+        return rightDirection;
+    }
+
+    moveInDirection(glMatrix, direction, running) {
+        const velocity = running ? RUNNING_VELOCITY : WALKING_VELOCITY;
+        glMatrix.vec3.scale(direction, direction, velocity);
+        glMatrix.vec3.add(this.playerPosition, this.playerPosition, direction);
+        glMatrix.vec3.add(this.targetPosition, this.targetPosition, direction);
+    }
+
+    moveForward(glMatrix, running) {
+        const forwardDirection = this.getPlayerForwardDirection(glMatrix);
+        this.moveInDirection(glMatrix, forwardDirection, running);
+    }
+
+    moveBackwards(glMatrix, running) {
+        const forwardDirection = this.getPlayerForwardDirection(glMatrix);
+        const backwardsDirection = glMatrix.vec3.create();
+        glMatrix.vec3.scale(backwardsDirection, forwardDirection, -1);
+        this.moveInDirection(glMatrix, backwardsDirection, running);
+    }
+
+    moveRight(glMatrix, running) {
+        const rightDirection = this.getPlayerRightDirection(glMatrix);
+        this.moveInDirection(glMatrix, rightDirection, running);
+    }
+
+    moveLeft(glMatrix, running) {
+        const rightDirection = this.getPlayerRightDirection(glMatrix);
+        const leftDirection = glMatrix.vec3.create();
+        glMatrix.vec3.scale(leftDirection, rightDirection, -1);
+        this.moveInDirection(glMatrix, leftDirection, running);
+    }
+
+    lookAround(glMatrix, deltaX, deltaY) {
+        this.alpha -= SENSITIVITY * deltaX;
+        this.beta -=  SENSITIVITY * deltaY;
+        if (this.beta > Math.PI / 2) this.beta = Math.PI / 2;
+        else if (this.beta < - Math.PI / 2 + 0.01) this.beta = - Math.PI / 2 + 0.01;
+
+        const newTargetPosition = glMatrix.vec3.fromValues(0,10,0);
+        glMatrix.vec3.rotateX(newTargetPosition, newTargetPosition, [0, 0, 0], this.beta);
+        glMatrix.vec3.rotateZ(newTargetPosition, newTargetPosition, [0, 0, 0], this.alpha);
+        glMatrix.vec3.add(newTargetPosition, newTargetPosition, this.playerPosition);
+        this.targetPosition = newTargetPosition;
+    }
 
 	setCurrentPosition(x, y) {
 		this.currentPosition.x = x;
 		this.currentPosition.y = y;
-	}
-
-	setNewPosition() {
-		if (this.isMoving.forward) this.camera.translationVector[1] += SPEED_FACTOR;
-		if (this.isMoving.back) this.camera.translationVector[1] -= SPEED_FACTOR;
-		if (this.isMoving.left) this.camera.translationVector[0] -= SPEED_FACTOR;
-		if (this.isMoving.right) this.camera.translationVector[0] += SPEED_FACTOR;
-	}
-
-	getMatrix(glMatrix) {
-		this.setNewPosition();
-		const deltaX = this.currentPositionX - this.previousPositionX;
-		this.previousPositionX = this.currentPositionX;
-
-		this.camera.rotationDegree = this.camera.rotationDegree - deltaX * CAMERA_SPEED_FACTOR;
-
-		const viewMatrix = glMatrix.mat4.create();
-		glMatrix.mat4.identity(viewMatrix);
-		const worldCoordinates = this.camera.getWorldCoordinates(viewMatrix);
-		
-		glMatrix.mat4.lookAt(
-			viewMatrix,
-			worldCoordinates[0],
-			worldCoordinates[1],
-			glMatrix.vec3.fromValues(0,0,1),
-		);
-
-		return viewMatrix;
 	}
 }
