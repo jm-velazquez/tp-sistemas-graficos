@@ -5,6 +5,8 @@ export class Model {
     uvBuffer = null;
     indexBuffer = null;
 
+    texture = null;
+
     children = [];
     modelMatrix = glMatrix.mat4.create();
 
@@ -15,12 +17,13 @@ export class Model {
 
     drawMode = null;
 
-    constructor(drawMode = null, positionBuffer = null, normalBuffer = null, indexBuffer = null, uvBuffer = null) {
+    constructor(drawMode = null, positionBuffer = null, normalBuffer = null, indexBuffer = null, uvBuffer = null, texture = null) {
         this.drawMode = drawMode;
         this.positionBuffer = positionBuffer;
         this.normalBuffer = normalBuffer;
         this.indexBuffer = indexBuffer;
         this.uvBuffer = uvBuffer;
+        this.texture = texture;
         glMatrix.mat4.identity(this.modelMatrix);
     }
 
@@ -76,6 +79,15 @@ export class Model {
             gl.enableVertexAttribArray(vertexNormalAttribute);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
             gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+            let uvCoordsAttribute = gl.getAttribLocation(glProgram, "aTextureCoord");
+            gl.enableVertexAttribArray(uvCoordsAttribute);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
+            gl.vertexAttribPointer(uvCoordsAttribute, 2, gl.FLOAT, false, 0, 0);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.uniform1i(gl.getUniformLocation(glProgram, "uSampler"), 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
             gl.drawElements(this.drawMode, this.indexBuffer.number_vertex_point, gl.UNSIGNED_SHORT, 0);

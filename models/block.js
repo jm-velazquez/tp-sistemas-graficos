@@ -1,13 +1,11 @@
-import { getBuildingBuffers } from "./building.js";
+import { MAX_BUILDING_STORIES, STORY_HEIGHT, getBuildingBuffers } from "./building.js";
 import { getSidewalk, SIDEWALK_HEIGHT } from "./sidewalk.js";
 import { getGlBuffersFromBuffers } from "../gl/gl-buffers.js";
 import { Model } from "../model.js";
 
-const MAX_BUILDING_STORIES = 8;
-const STORY_HEIGHT = 10;
-const BUILDING_SIDE = 20;
 const INDEX_BUFFER_OFFSET = 24;
 const BUILDINGS_PER_BLOCK = 12;
+const BUILDING_VARIATIONS = 4;
 
 export function getBuildingBlockHeights() {
 	const buildingHeights = [];
@@ -17,7 +15,15 @@ export function getBuildingBlockHeights() {
 	return buildingHeights;
 }
 
-function getAllBuildingBuffers(gl, buildingHeights) {
+export function getBuildingBlockVariations() {
+	const buildingVariations = [];
+	for (let i = 0; i < BUILDINGS_PER_BLOCK; i++) {
+		buildingVariations.push(Math.floor(Math.random() * BUILDING_VARIATIONS));
+	}
+	return buildingVariations;
+}
+
+function getAllBuildingBuffers(gl, buildingHeights, buildingVariations) {
 	const xyOffsets = [
 		[-40, -40],
 		[-20, -40],
@@ -35,9 +41,8 @@ function getAllBuildingBuffers(gl, buildingHeights) {
 	const buildingBuffers = xyOffsets.map(
 		(offset, index) => getBuildingBuffers(
 			gl,
-			BUILDING_SIDE,
-			BUILDING_SIDE,
 			buildingHeights[index],
+			buildingVariations[index],
 			offset[0],
 			offset[1],
 			SIDEWALK_HEIGHT,
@@ -54,8 +59,8 @@ function getAllBuildingBuffers(gl, buildingHeights) {
 	return allBuildingBuffers;
 }
 
-export function getBlock(gl, glMatrix, buildingHeights, empty) {
-	const allBuildingBuffers = getAllBuildingBuffers(gl, buildingHeights);
+export function getBlock(gl, glMatrix, buildingTexture, buildingHeights, buildingVariations, empty) {
+	const allBuildingBuffers = getAllBuildingBuffers(gl, buildingHeights, buildingVariations);
 	const glBlockBuffers = getGlBuffersFromBuffers(
 		gl,
 		allBuildingBuffers.positionBuffer,
@@ -69,6 +74,7 @@ export function getBlock(gl, glMatrix, buildingHeights, empty) {
 		glBlockBuffers.glNormalBuffer,
 		glBlockBuffers.glIndexBuffer,
 		glBlockBuffers.glUVBuffer,
+		buildingTexture,
 	);
 	const sidewalk = getSidewalk(gl, glMatrix);
 	if (!empty) {

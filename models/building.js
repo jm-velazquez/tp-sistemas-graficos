@@ -1,39 +1,47 @@
-export function getBuildingBuffers(gl, width, length, height,
+export const MAX_BUILDING_STORIES = 6;
+export const STORY_HEIGHT = 10;
+export const BUILDING_SIDE = 20;
+
+const MAX_BUILDING_HEIGHT = MAX_BUILDING_STORIES * STORY_HEIGHT;
+
+
+
+export function getBuildingBuffers(gl, height, buildingVariation, 
 	xOffset = 0, yOffset = 0, zOffset = 0, indexBufferOffset = 0) {
 	const positionBuffer = [];
 	const normalBuffer = [];
 	const uvBuffer = [];
 	let indexBuffer = [];
 	positionBuffer.push(
-		xOffset,yOffset,zOffset,														// 0
-		xOffset,yOffset,zOffset,														// 1
-		xOffset,yOffset,zOffset,														// 2
-		xOffset + width,yOffset,zOffset,										// 3
-		xOffset + width,yOffset,zOffset,										// 4
-		xOffset + width,yOffset,zOffset,										// 5
-		xOffset,yOffset + length,zOffset,										// 6
-		xOffset,yOffset + length,zOffset,										// 7
-		xOffset,yOffset + length,zOffset,										// 8
-		xOffset + width,yOffset + length,zOffset,						// 9
-		xOffset + width,yOffset + length,zOffset,						// 10
-		xOffset + width,yOffset + length,zOffset,						// 11
-		xOffset,yOffset,zOffset + height,										// 12
-		xOffset,yOffset,zOffset + height,										// 13
-		xOffset,yOffset,zOffset + height,										// 14
-		xOffset + width,yOffset,zOffset + height,						// 15
-		xOffset + width,yOffset,zOffset + height,						// 16
-		xOffset + width,yOffset,zOffset + height,						// 17
-		xOffset,yOffset + length,zOffset + height,					// 18
-		xOffset,yOffset + length,zOffset + height,					// 19
-		xOffset,yOffset + length,zOffset + height,					// 20
-		xOffset + width,yOffset + length,zOffset + height,	// 21
-		xOffset + width,yOffset + length,zOffset + height,	// 22
-		xOffset + width,yOffset + length,zOffset + height,	// 23
+		xOffset,yOffset,zOffset,											// 0
+		xOffset,yOffset,zOffset,											// 1
+		xOffset,yOffset,zOffset,											// 2
+		xOffset + BUILDING_SIDE,yOffset,zOffset,							// 3
+		xOffset + BUILDING_SIDE,yOffset,zOffset,							// 4
+		xOffset + BUILDING_SIDE,yOffset,zOffset,							// 5
+		xOffset,yOffset + BUILDING_SIDE,zOffset,							// 6
+		xOffset,yOffset + BUILDING_SIDE,zOffset,							// 7
+		xOffset,yOffset + BUILDING_SIDE,zOffset,							// 8
+		xOffset + BUILDING_SIDE,yOffset + BUILDING_SIDE,zOffset,			// 9
+		xOffset + BUILDING_SIDE,yOffset + BUILDING_SIDE,zOffset,			// 10
+		xOffset + BUILDING_SIDE,yOffset + BUILDING_SIDE,zOffset,			// 11
+		xOffset,yOffset,zOffset + height,									// 12
+		xOffset,yOffset,zOffset + height,									// 13
+		xOffset,yOffset,zOffset + height,									// 14
+		xOffset + BUILDING_SIDE,yOffset,zOffset + height,					// 15
+		xOffset + BUILDING_SIDE,yOffset,zOffset + height,					// 16
+		xOffset + BUILDING_SIDE,yOffset,zOffset + height,					// 17
+		xOffset,yOffset + BUILDING_SIDE,zOffset + height,					// 18
+		xOffset,yOffset + BUILDING_SIDE,zOffset + height,					// 19
+		xOffset,yOffset + BUILDING_SIDE,zOffset + height,					// 20
+		xOffset + BUILDING_SIDE,yOffset + BUILDING_SIDE,zOffset + height,	// 21
+		xOffset + BUILDING_SIDE,yOffset + BUILDING_SIDE,zOffset + height,	// 22
+		xOffset + BUILDING_SIDE,yOffset + BUILDING_SIDE,zOffset + height,	// 23
 	);
 
 	normalBuffer.push(
 		0, 0,-1,		// 0
-		0,-1, 0,		// 1
+		0,-1, 0,		// 1		
 		-1,0, 0,		// 2
 		0, 0,-1,		// 3
 		0,-1, 0,		// 4
@@ -58,31 +66,35 @@ export function getBuildingBuffers(gl, width, length, height,
 		1, 0, 0,		// 23
 	);
 
+	const maxHeightRatio = height / MAX_BUILDING_HEIGHT;
+	const leftUVOffset = buildingVariation * 0.25;
+	const rightUVOffset = leftUVOffset + 0.25;
+
 	uvBuffer.push(
-		0, 0,				// 0
-		0, 0,				// 1
-		1, 0,				// 2
-		1, 0,				// 3
-		1, 0,				// 4
-		0, 0,				// 5
-		0, 1,				// 6
-		1, 0,				// 7
-		0, 0,				// 8
-		1, 1,				// 9
-		0, 0,				// 10
-		1, 0,				// 11
-		0, 0,				// 12
-		0, 1,				// 13
-		1, 1,				// 14
-		0, 1,				// 15
-		1, 1,				// 16
-		0, 1,				// 17
-		1, 0,				// 18
-		1, 1,				// 19
-		0, 1,				// 20
-		1, 1,				// 21
-		0, 1,				// 22
-		1, 1,				// 23
+		leftUVOffset, 0,							// 0
+		leftUVOffset, 0,							// 1
+		rightUVOffset, 0,							// 2
+		leftUVOffset, 0,							// 3
+		rightUVOffset, 0,							// 4
+		leftUVOffset, 0,							// 5
+		leftUVOffset, 0,							// 6
+		rightUVOffset, 0,							// 7
+		leftUVOffset, 0,							// 8
+		leftUVOffset, 0,							// 9
+		leftUVOffset, 0,							// 10
+		rightUVOffset, 0,							// 11
+		leftUVOffset, 0,							// 12
+		leftUVOffset, maxHeightRatio,				// 13
+		rightUVOffset, maxHeightRatio,				// 14
+		leftUVOffset, 0,							// 15
+		rightUVOffset, maxHeightRatio,				// 16
+		leftUVOffset, maxHeightRatio,				// 17
+		leftUVOffset, 0,							// 18
+		rightUVOffset, maxHeightRatio,				// 19
+		leftUVOffset, maxHeightRatio,				// 20
+		leftUVOffset, 0,							// 21
+		leftUVOffset, maxHeightRatio,				// 22
+		rightUVOffset, maxHeightRatio,				// 23
 	);
 
 	indexBuffer.push(

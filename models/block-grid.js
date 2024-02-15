@@ -1,4 +1,4 @@
-import { getBlock, getBuildingBlockHeights } from "./block.js";
+import { getBlock, getBuildingBlockHeights, getBuildingBlockVariations } from "./block.js";
 import { BLOCK_SIDE } from "./sidewalk.js";
 import { Model } from "../model.js";
 
@@ -36,11 +36,19 @@ export function getBuildingBlockHeightsPerBlock() {
 	return buildingBlockHeightsPerBlock;
 }
 
-export function getBlockGrid(gl, glMatrix, buildingHeightsPerBlock, emptyGrids) {
+export function getBuildingVariationsPerBlock() {
+	const buildingVariationsPerBlock = [];
+	for (let i = 0; i < 25; i++) {
+		buildingVariationsPerBlock.push(getBuildingBlockVariations());
+	}
+	return buildingVariationsPerBlock;
+}
+
+export function getBlockGrid(gl, glMatrix, buildingTexture, buildingHeightsPerBlock, buildingVariationsPerBlock, emptyGrids) {
 	const blockGrid = new Model();
 	for (let i = 0; i < 5; i++) {
 		for (let j = 0; j < 5; j++) {
-			const block = getBlock(gl, glMatrix, buildingHeightsPerBlock[i + j * 5], emptyGrids[i + j * 5]);
+			const block = getBlock(gl, glMatrix, buildingTexture, buildingHeightsPerBlock[i + j * 5], buildingVariationsPerBlock[i + j * 5], emptyGrids[i + j * 5]);
 			block.translationVector = [
 				(BLOCK_SIDE + STREET_WIDTH) * (j - 2),
 				(BLOCK_SIDE + STREET_WIDTH) * (i - 2),
