@@ -52,19 +52,21 @@
             varying vec3 vNormal;
             varying vec2 vTextureCoord;
 
+            uniform sampler2D uSampler;
+
             void main(void) {
-                float asd = dot(vNormal, vec3(0, 0, 1)) * 0.5 + 0.5;
-                vec3 ambientLight = mix(vec3(1., 0.5, 0.3), vec3(0.5, 0.5, 1.), asd);
+                float ambientFloat = dot(vNormal, vec3(0, 0, 1)) * 0.5 + 0.5;
+                vec3 ambientLight = mix(vec3(1., 0.5, 0.3), vec3(0.5, 0.5, 1.), ambientFloat);
                 vec3 directionalLightColor = vec3(0.953, 0.898, 0.737);
                 vec3 directionalVector = normalize(vec3(1., 2., 3.));
 
-                ambientLight = ambientLight * 0.3;
+                ambientLight = ambientLight * 0.6;
 
                 float directional = max(dot(vNormal.xyz, directionalVector), 0.0);
-                vec3 color = ambientLight + (directionalLightColor * directional);
+                vec4 textureColor = texture2D(uSampler, vTextureCoord);
+                vec3 lightColor = ambientLight + (directionalLightColor * directional);
                 
-                gl_FragColor = vec4(color,1.0);
-                // gl_FragColor = vec4(vNormal, 1.0);
+                gl_FragColor = vec4(lightColor,1.0) + textureColor * .2;
             }
         </script>
         
@@ -122,6 +124,7 @@
                     setupWebGL();
                     initShaders();
                     generateSceneParameters();
+                    loadTextures();
                     tick();
 
                 }else{    
@@ -300,6 +303,27 @@
                 amountOfColumns = Math.floor(app.columns);
 
                 carPositions = new CarPositions(glMatrix, highwayLevels);
+            }
+
+            let textures = {};
+
+            function loadTextures() {
+                const texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+
+                textures.green = new Uint8Array([0, 255, 0, 255]);
+                gl.texImage2D(
+                    gl.TEXTURE_2D,
+                    0,
+                    gl.RGBA,
+                    1,
+                    1,
+                    0,
+                    gl.RGBA,
+                    gl.UNSIGNED_BYTE,
+                    textures.green,
+                );
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
             }
 
             function createScene() {

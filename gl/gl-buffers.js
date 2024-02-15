@@ -15,6 +15,6 @@ export function getGlBuffersFromBuffers(gl, positionBuffer, normalBuffer, uvBuff
   glIndexBuffer.number_vertex_point = indexBuffer.length;
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glIndexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexBuffer), gl.STATIC_DRAW);
-  // TODO: Add uvBuffer
+
   return {glPositionBuffer, glNormalBuffer, glUVBuffer, glIndexBuffer}
 }
