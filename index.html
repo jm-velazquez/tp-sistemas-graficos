@@ -319,10 +319,10 @@
 
                 const car = getCar(gl, glMatrix);
                 car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
-                const blockGrid = getBlockGrid(gl, glMatrix, textureMap.getTexture("buildings"), buildingHeightsPerBlock, buildingVariationsPerBlock, emptyGrids);
+                const blockGrid = getBlockGrid(gl, glMatrix, textureMap, buildingHeightsPerBlock, buildingVariationsPerBlock, emptyGrids);
                 blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
-                const highway = getHighway(gl, glMatrix, highwayLevels, amountOfLights, amountOfColumns, carPositions);
+                const highway = getHighway(gl, glMatrix, textureMap, highwayLevels, amountOfLights, amountOfColumns, carPositions);
                 highway.rotationAxis = [1, 0, 0];
                 highway.rotationDegree = Math.PI  / 2;
                 highway.translationVector = [0, 0, 30];

@@ -28,12 +28,10 @@ export function getChasis(gl, glMatrix) {
 	);
 
 	const baseTrapezoid = new Trapezoid(BASE_BASE_WIDTH, BASE_TOP_WIDTH, BASE_HEIGHT);
-	const baseTrapezoidArrays = baseTrapezoid.getPositionAndNormalArrays();
 	const carBaseBuffers = generateSweepSurface(
 		gl,
 		glMatrix,
-		baseTrapezoidArrays.positionArray,
-		baseTrapezoidArrays.normalArray,
+		baseTrapezoid,
 		[level0Matrix, level1MatrixBase],
 		true,
 		true,
@@ -42,7 +40,8 @@ export function getChasis(gl, glMatrix) {
 		gl.TRIANGLE_STRIP,
 		carBaseBuffers.glPositionBuffer,
 		carBaseBuffers.glNormalBuffer,
-		carBaseBuffers.glIndexBuffer
+		carBaseBuffers.glIndexBuffer,
+		carBaseBuffers.glUVBuffer,
 	);
 
 	let level1MatrixTop = glMatrix.mat4.fromValues(
@@ -53,12 +52,10 @@ export function getChasis(gl, glMatrix) {
 	);
 
 	const topTrapezoid = new Trapezoid(TOP_BASE_WIDTH, TOP_TOP_WIDTH, TOP_HEIGHT);
-	const topTrapezoidArrays = topTrapezoid.getPositionAndNormalArrays();
 	const carTopBuffers = generateSweepSurface(
 		gl,
 		glMatrix,
-		topTrapezoidArrays.positionArray,
-		topTrapezoidArrays.normalArray,
+		topTrapezoid,
 		[level0Matrix, level1MatrixTop],
 		true,
 		true,
@@ -67,7 +64,8 @@ export function getChasis(gl, glMatrix) {
 		gl.TRIANGLE_STRIP,
 		carTopBuffers.glPositionBuffer,
 		carTopBuffers.glNormalBuffer,
-		carTopBuffers.glIndexBuffer
+		carTopBuffers.glIndexBuffer,
+		carTopBuffers.glUVBuffer,
 	);
 
 	carTop.translationVector = [0, BASE_HEIGHT / 2 + TOP_HEIGHT / 2, 0];

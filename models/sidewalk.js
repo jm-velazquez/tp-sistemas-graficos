@@ -6,7 +6,7 @@ export const SIDEWALK_HEIGHT = 0.2;
 export const BLOCK_SIDE = 100;
 const BLOCK_CORNER_RADIUS = 10;
 
-export function getSidewalk(gl, glMatrix) {
+export function getSidewalk(gl, glMatrix, texture) {
 	let level0Matrix = glMatrix.mat4.fromValues(
 		1,0,0,0,
 		0,1,0,0,
@@ -20,13 +20,11 @@ export function getSidewalk(gl, glMatrix) {
 		0,0,1,0,
 		0,0,SIDEWALK_HEIGHT,1
 	);
-	const squircle = new Squircle(BLOCK_SIDE, BLOCK_CORNER_RADIUS);
-	const squircleArrays = squircle.getPositionAndNormalArrays();
+	const squircle = new Squircle(BLOCK_SIDE, BLOCK_CORNER_RADIUS, 1);
 	const sidewalkBuffers = generateSweepSurface(
 		gl,
 		glMatrix,
-		squircleArrays.positionArray,
-		squircleArrays.normalArray,
+		squircle,
 		[level0Matrix, level1Matrix],
 		false,
 		true,
@@ -36,5 +34,7 @@ export function getSidewalk(gl, glMatrix) {
 		sidewalkBuffers.glPositionBuffer,
 		sidewalkBuffers.glNormalBuffer,
 		sidewalkBuffers.glIndexBuffer,
+		sidewalkBuffers.glUVBuffer,
+		texture,
 	);
 }

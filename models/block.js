@@ -59,7 +59,11 @@ function getAllBuildingBuffers(gl, buildingHeights, buildingVariations) {
 	return allBuildingBuffers;
 }
 
-export function getBlock(gl, glMatrix, buildingTexture, buildingHeights, buildingVariations, empty) {
+export function getBlock(gl, glMatrix, textureMap, buildingHeights, buildingVariations, empty) {
+	if (empty) {
+		const sidewalk = getSidewalk(gl, glMatrix, textureMap.getTexture("grass"));
+		return sidewalk;
+	}
 	const allBuildingBuffers = getAllBuildingBuffers(gl, buildingHeights, buildingVariations);
 	const glBlockBuffers = getGlBuffersFromBuffers(
 		gl,
@@ -74,11 +78,9 @@ export function getBlock(gl, glMatrix, buildingTexture, buildingHeights, buildin
 		glBlockBuffers.glNormalBuffer,
 		glBlockBuffers.glIndexBuffer,
 		glBlockBuffers.glUVBuffer,
-		buildingTexture,
+		textureMap.getTexture("buildings"),
 	);
-	const sidewalk = getSidewalk(gl, glMatrix);
-	if (!empty) {
-		sidewalk.addChild(buildings);
-	}
+	const sidewalk = getSidewalk(gl, glMatrix, textureMap.getTexture("sidewalk"));
+	sidewalk.addChild(buildings);
 	return sidewalk;
 }

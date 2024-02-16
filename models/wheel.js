@@ -21,13 +21,11 @@ export function getWheel(gl, glMatrix) {
 		0,0,DEPTH,1
 	);
    
-	const circle = new Circle(RADIUS);
-	const circleArrays = circle.getPositionAndNormalArrays(DEFINITION);
+	const circle = new Circle(RADIUS, DEFINITION);
 	const cylinderBuffers = generateSweepSurface(
 		gl,
 		glMatrix,
-		circleArrays.positionArray,
-		circleArrays.normalArray,
+		circle,
 		[level0Matrix, level1Matrix],
 		true,
 		true,
@@ -36,6 +34,7 @@ export function getWheel(gl, glMatrix) {
 		gl.TRIANGLE_STRIP,
 		cylinderBuffers.glPositionBuffer,
 		cylinderBuffers.glNormalBuffer,
-		cylinderBuffers.glIndexBuffer
+		cylinderBuffers.glIndexBuffer,
+		cylinderBuffers.glUVBuffer,
 	);
 }

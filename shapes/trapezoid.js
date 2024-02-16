@@ -8,10 +8,13 @@ export class Trapezoid {
     this.height = height;
 	}
 
-	getPositionAndNormalArrays() {
-    const diff = this.base - this.top;
+	getArrays() {
 		const positionArray = [];
     const normalArray = [];
+    const uvArray = [];
+
+    const diff = this.base - this.top;
+    const normalizedDiff = diff / this.base;
 
     const rotateMatrix = glMatrix.mat4.create();
     glMatrix.mat4.identity(rotateMatrix);
@@ -22,21 +25,36 @@ export class Trapezoid {
 
     positionArray.push(glMatrix.vec4.fromValues(-this.base / 2, - this.height / 2, 0, 1));
     normalArray.push(glMatrix.vec4.fromValues(0, -1, 0, 1));
+    uvArray.push(0, 0);
+
     positionArray.push(glMatrix.vec4.fromValues(this.base / 2, - this.height / 2, 0, 1));
     normalArray.push(glMatrix.vec4.fromValues(0, -1, 0, 1));
+    uvArray.push(1, 0);
+
     positionArray.push(glMatrix.vec4.fromValues(this.base / 2, - this.height / 2, 0, 1));
     normalArray.push(rightSideNormal);
+    uvArray.push(1, 0);
+
     positionArray.push(glMatrix.vec4.fromValues(this.top / 2, this.height / 2, 0, 1));
     normalArray.push(rightSideNormal);
+    uvArray.push(1 - normalizedDiff, 1);
+
     positionArray.push(glMatrix.vec4.fromValues(this.top / 2, this.height / 2, 0, 1));
     normalArray.push(glMatrix.vec4.fromValues(0, 1, 0, 1));
+    uvArray.push(1 - normalizedDiff, 1);
+
     positionArray.push(glMatrix.vec4.fromValues(- this.top / 2, this.height / 2, 0, 1));
     normalArray.push(glMatrix.vec4.fromValues(0, 1, 0, 1));
+    uvArray.push(normalizedDiff, 1);
+
     positionArray.push(glMatrix.vec4.fromValues(- this.top / 2, this.height / 2, 0, 1));
     normalArray.push(leftSideNormal);
+    uvArray.push(normalizedDiff, 1);
+
     positionArray.push(glMatrix.vec4.fromValues(-this.base / 2, - this.height / 2, 0, 1));
     normalArray.push(leftSideNormal);
+    uvArray.push(0, 0);
 
-    return {positionArray, normalArray};
+    return {positionArray, normalArray, uvArray};
 	}
 }

@@ -11,14 +11,14 @@ import { getCar } from "../models/car.js";
 const ROAD_WIDTH = 50;
 const ROAD_HEIGHT = 4;
 
-function getLights(gl, glMatrix, levelMatrices, amountOfLights) {
+function getLights(gl, glMatrix, texture, levelMatrices, amountOfLights) {
 	const levels = levelMatrices.map(levelMatrix => [levelMatrix[12], levelMatrix[14]]);
 	const lut = new LUT(levels);
 	const distance = lut.getTotalDistance() / (amountOfLights - 1);
 	
 	const streetLights = [];
 	for (let i = 0; i < amountOfLights; i++) {
-		const streetLight = getStreetLight(gl, glMatrix);
+		const streetLight = getStreetLight(gl, glMatrix, texture);
 		const position = lut.getInterpolatedPoint(distance * i);
 		
 		// Get normal of the closest past level
@@ -35,13 +35,13 @@ function getLights(gl, glMatrix, levelMatrices, amountOfLights) {
 	return streetLights;
 }
 
-function getColumns(gl, glMatrix, levels, amountOfColumns) {
+function getColumns(gl, glMatrix, pillarTexture, baseTexture, levels, amountOfColumns) {
 	const lut = new LUT(levels);
 	const distance = lut.getTotalDistance() / (amountOfColumns - 1);
 	
 	const columns = [];
 	for (let i = 0; i < amountOfColumns; i++) {
-		const column = getColumn(gl, glMatrix, 30);
+		const column = getColumn(gl, glMatrix, pillarTexture, baseTexture, 30);
 		const position = lut.getInterpolatedPoint(distance * i);
 		column.translationVector = [position[0], 0, position[1]];
 		columns.push(column);
@@ -49,17 +49,16 @@ function getColumns(gl, glMatrix, levels, amountOfColumns) {
 	return columns;
 }
 
-function getRoad(gl, glMatrix, levelMatrices) {
+function getRoad(gl, glMatrix, texture, levelMatrices) {
 	const roadShape = new Rectangle(ROAD_WIDTH, ROAD_HEIGHT);
-	const roadArrays = roadShape.getPositionAndNormalArrays(glMatrix);
 	const roadBuffers = generateSweepSurface(
 		gl,
 		glMatrix,
-		roadArrays.positionArray,
-		roadArrays.normalArray,
+		roadShape,
 		levelMatrices,
 		true,
-		true
+		true,
+		1
 	);
 
 	return new Model(
@@ -67,17 +66,17 @@ function getRoad(gl, glMatrix, levelMatrices) {
 		roadBuffers.glPositionBuffer,
 		roadBuffers.glNormalBuffer,
 		roadBuffers.glIndexBuffer,
+		roadBuffers.glUVBuffer,
+		texture,
 	);
 }
 
-function getGuardrail(gl, glMatrix, levelMatrices) {
+function getGuardrail(gl, glMatrix, texture, levelMatrices) {
 	const guardrailShape = new Trapezoid(1,0.5,1);
-	const guardrailArrays = guardrailShape.getPositionAndNormalArrays();
 	const guardrailBuffers = generateSweepSurface(
 		gl,
 		glMatrix,
-		guardrailArrays.positionArray,
-		guardrailArrays.normalArray,
+		guardrailShape,
 		levelMatrices,
 		true,
 		true
@@ -88,6 +87,8 @@ function getGuardrail(gl, glMatrix, levelMatrices) {
 		guardrailBuffers.glPositionBuffer,
 		guardrailBuffers.glNormalBuffer,
 		guardrailBuffers.glIndexBuffer,
+		guardrailBuffers.glUVBuffer,
+		texture,
 	);
 	guardrail.translationVector = [0, 2.5, 0];
 	return guardrail;
@@ -106,26 +107,26 @@ function getCars(gl, glMatrix, carPositions) {
 	return cars;
 }
 
-export function getHighway(gl, glMatrix, levels, amountOfLights, amountOfColumns, carPositions) {
+export function getHighway(gl, glMatrix, textureMap, levels, amountOfLights, amountOfColumns, carPositions) {
 	const levelMatrices = generateLevelMatrices(glMatrix, levels);
 	
-	const road = getRoad(gl, glMatrix, levelMatrices);
+	const road = getRoad(gl, glMatrix, textureMap.getTexture("highwayRoad"), levelMatrices);
 
-	const middleGuardrail = getGuardrail(gl, glMatrix, levelMatrices);
+	const middleGuardrail = getGuardrail(gl, glMatrix, textureMap.getTexture("lightGrey"), levelMatrices);
 	road.addChild(middleGuardrail);
 
 	const rightGuardrailMatrices = translateMatricesAlongNormalAxis(glMatrix, levelMatrices, ROAD_WIDTH / 2);
-	const rightGuardrail = getGuardrail(gl, glMatrix, rightGuardrailMatrices);
+	const rightGuardrail = getGuardrail(gl, glMatrix, textureMap.getTexture("lightGrey"), rightGuardrailMatrices);
 	road.addChild(rightGuardrail);
 
 	const leftGuardrailMatrices = translateMatricesAlongNormalAxis(glMatrix, levelMatrices, - ROAD_WIDTH / 2);
-	const leftGuardrail = getGuardrail(gl, glMatrix, leftGuardrailMatrices);
+	const leftGuardrail = getGuardrail(gl, glMatrix, textureMap.getTexture("lightGrey"), leftGuardrailMatrices);
 	road.addChild(leftGuardrail);
 
-	const streetLights = getLights(gl, glMatrix, levelMatrices, amountOfLights);
+	const streetLights = getLights(gl, glMatrix, textureMap.getTexture("grey"), levelMatrices, amountOfLights);
 	streetLights.forEach(streetLight => road.addChild(streetLight));
 	
-	const columns = getColumns(gl, glMatrix, levels, amountOfColumns);
+	const columns = getColumns(gl, glMatrix, textureMap.getTexture("sidewalk"), textureMap.getTexture("grey"), levels, amountOfColumns);
 	columns.forEach(column => road.addChild(column));
 
 	const cars = getCars(gl, glMatrix, carPositions);

@@ -1,7 +1,10 @@
 export class QuarterCircle {
-	radius = 0;
-	constructor(radius = 1) {
+	radius;
+	definition;
+
+	constructor(radius = 1, definition = 8) {
 		this.radius = radius;
+		this.definition = definition;
 	}
 
 	getPosition(u) {
@@ -11,17 +14,20 @@ export class QuarterCircle {
 		return glMatrix.vec4.fromValues(x, y, 0, 1);
 	}
 
-	getPositionAndNormalArrays(amountOfPoints) {
-		const increment = 1 / amountOfPoints;
+	getArrays() {
+		const increment = 1 / this.definition;
 		const positionArray = [];
 		const normalArray = [];
-		for (let i = 0; i <= amountOfPoints; i++) {
+		const uvArray = [];
+
+		for (let i = 0; i <= this.definition; i++) {
 			const position = this.getPosition(i * increment);
 			const normal = glMatrix.vec4.create();
 			glMatrix.vec4.normalize(normal, position);
 			positionArray.push(position);
 			normalArray.push(normal);
+			uvArray.push(position[0] / this.radius + this.radius, position[1] / this.radius + this.radius);
 		}
-		return {positionArray, normalArray};
+		return {positionArray, normalArray, uvArray};
 	}
 }
