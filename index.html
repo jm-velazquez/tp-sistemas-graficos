@@ -53,6 +53,7 @@
             varying vec2 vTextureCoord;
 
             uniform sampler2D uSampler;
+            uniform float lightModifier;
 
             void main(void) {
                 float ambientFloat = dot(vNormal, vec3(0, 0, 1)) * 0.5 + 0.5;
@@ -66,7 +67,7 @@
                 vec4 textureColor = texture2D(uSampler, vTextureCoord);
                 vec3 lightColor = ambientLight + (directionalLightColor * directional);
                 
-                gl_FragColor = vec4(lightColor,1.0) * .4 + textureColor * .8;
+                gl_FragColor = vec4(lightColor,1.0) * lightModifier + textureColor * .8;
             }
         </script>
         
@@ -78,6 +79,7 @@
             import { getHighway } from "./models/highway.js";
             import { getBlock, getBuildingBlockHeights } from "./models/block.js";
             import { getBlockGrid, getBuildingBlockHeightsPerBlock, getBuildingVariationsPerBlock, getEmptyGrids } from "./models/block-grid.js";
+            import { getSkybox } from "./models/skybox.js";
             import { drawGrid } from "./models/grid.js";
             import { OrbitalCamera } from "./cameras/orbital-camera.js";
             import { FirstPersonCamera } from "./cameras/first-person-camera.js";
@@ -126,7 +128,7 @@
                     initShaders();
                     generateSceneParameters();
                     loadTextures();
-                    tick();
+                    tick(0);
 
                 }else{    
                     alert(  "Error: Your browser does not appear to support WebGL.");
@@ -189,8 +191,8 @@
                 }
                 return shader;
             }
-            
-            function tick(){
+
+            function tick(timestamp){
                 requestAnimationFrame(tick);
 
                 createScene();
@@ -321,6 +323,9 @@
                 car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
                 const blockGrid = getBlockGrid(gl, glMatrix, textureMap, buildingHeightsPerBlock, buildingVariationsPerBlock, emptyGrids);
                 blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+
+                const skybox = getSkybox(gl, textureMap);
+                skybox.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
                 const highway = getHighway(gl, glMatrix, textureMap, highwayLevels, amountOfLights, amountOfColumns, carPositions);
                 highway.rotationAxis = [1, 0, 0];

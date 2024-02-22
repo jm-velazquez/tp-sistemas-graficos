@@ -1,10 +1,10 @@
 export class Bezier2 {
-  deltaU = 10;
+  deltaU = 20;
   points = [];
 
   setControlPoints(points) {
       if (!Array.isArray(points)) throw ("points no es un array");
-      points.forEach((v, i) =>
+      points.forEach(v =>
           this.points.push([v[0], v[1]])
       );
   }

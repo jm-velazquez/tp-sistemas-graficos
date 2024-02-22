@@ -12,23 +12,22 @@ export class Squircle {
 		this.side = side;
 		this.cornerRadius = cornerRadius;
 		// Lower right corner
-		this.addCornerVertices(side / 2 - cornerRadius, - side / 2 + cornerRadius, Math.PI * (3 / 2));
+		this.addCornerVertices(side / 2 - cornerRadius, - side / 2 + cornerRadius, Math.PI * (3 / 2), uvMultiplier);
 		// Uper right corner
-		this.addCornerVertices(side / 2 - cornerRadius, side / 2 - cornerRadius, 0);
+		this.addCornerVertices(side / 2 - cornerRadius, side / 2 - cornerRadius, 0, uvMultiplier);
 		// Upper left corner
-		this.addCornerVertices(- side / 2 + cornerRadius, side / 2 - cornerRadius, Math.PI / 2);
+		this.addCornerVertices(- side / 2 + cornerRadius, side / 2 - cornerRadius, Math.PI / 2, uvMultiplier);
 		// Lower left corner
-		this.addCornerVertices(- side / 2 + cornerRadius, - side / 2 + cornerRadius, Math.PI);
+		this.addCornerVertices(- side / 2 + cornerRadius, - side / 2 + cornerRadius, Math.PI, uvMultiplier);
 		// Closes the shape (by repeating the first vertex)
 		this.positionArray.push(glMatrix.vec4.fromValues(side / 2 - cornerRadius, - side / 2, 0, 1));
 		this.normalArray.push(glMatrix.vec4.fromValues(0, -1, 0, 1));
 		this.uvArray.push(
-			(2 * (side / 2 - cornerRadius) / side + side) * uvMultiplier,
-			(- side / 2) / side + side * uvMultiplier,
-		);
+			- 2 * (side / 2 - cornerRadius) / this.side * uvMultiplier + 1,
+			- 2 * (- side / 2) / this.side * uvMultiplier );
 	}
 
-	addCornerVertices(xOffset, yOffset, phi) {
+	addCornerVertices(xOffset, yOffset, phi, uvMultiplier) {
 		for (let i = 0; i <= CORNER_DEFINITION; i++) {
 			const alpha = (i / CORNER_DEFINITION) * (Math.PI / 2);
 			const xCorner = Math.cos(phi + alpha);
@@ -37,7 +36,7 @@ export class Squircle {
 			const y = yOffset + this.cornerRadius * yCorner;
 			this.positionArray.push(glMatrix.vec4.fromValues(x, y, 0, 1));
 			this.normalArray.push(glMatrix.vec4.fromValues(xCorner, yCorner, 0, 1));
-			this.uvArray.push(2 * x / this.side + this.side, 2 * y / this.side + this.side);
+			this.uvArray.push(- 2 * x / this.side * uvMultiplier + 1, - 2 * y / this.side * uvMultiplier );
 		}
 	}
 

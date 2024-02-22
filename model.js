@@ -7,6 +7,8 @@ export class Model {
 
     texture = null;
 
+    lightModifier;
+
     children = [];
     modelMatrix = glMatrix.mat4.create();
 
@@ -17,13 +19,14 @@ export class Model {
 
     drawMode = null;
 
-    constructor(drawMode = null, positionBuffer = null, normalBuffer = null, indexBuffer = null, uvBuffer = null, texture = null) {
+    constructor(drawMode = null, positionBuffer = null, normalBuffer = null, indexBuffer = null, uvBuffer = null, texture = null, lightModifier = 0.4) {
         this.drawMode = drawMode;
         this.positionBuffer = positionBuffer;
         this.normalBuffer = normalBuffer;
         this.indexBuffer = indexBuffer;
         this.uvBuffer = uvBuffer;
         this.texture = texture;
+        this.lightModifier = lightModifier;
         glMatrix.mat4.identity(this.modelMatrix);
     }
 
@@ -88,6 +91,9 @@ export class Model {
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.uniform1i(gl.getUniformLocation(glProgram, "uSampler"), 0);
+
+            let lightModifierAttribute = gl.getUniformLocation(glProgram, "lightModifier");
+            gl.uniform1f(lightModifierAttribute, this.lightModifier);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
             gl.drawElements(this.drawMode, this.indexBuffer.number_vertex_point, gl.UNSIGNED_SHORT, 0);

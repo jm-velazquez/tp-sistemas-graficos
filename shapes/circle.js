@@ -4,7 +4,7 @@ export class Circle {
 
 	constructor(radius = 1, definition = 8) {
 		this.radius = radius;
-		this.definition = 8;
+		this.definition = definition;
 	}
 
 	getPosition(u) {

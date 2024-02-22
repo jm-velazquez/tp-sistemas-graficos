@@ -20,7 +20,7 @@ export function getSidewalk(gl, glMatrix, texture) {
 		0,0,1,0,
 		0,0,SIDEWALK_HEIGHT,1
 	);
-	const squircle = new Squircle(BLOCK_SIDE, BLOCK_CORNER_RADIUS, 1);
+	const squircle = new Squircle(BLOCK_SIDE, BLOCK_CORNER_RADIUS, 10);
 	const sidewalkBuffers = generateSweepSurface(
 		gl,
 		glMatrix,

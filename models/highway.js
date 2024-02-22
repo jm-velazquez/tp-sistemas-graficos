@@ -126,7 +126,7 @@ export function getHighway(gl, glMatrix, textureMap, levels, amountOfLights, amo
 	const streetLights = getLights(gl, glMatrix, textureMap.getTexture("grey"), levelMatrices, amountOfLights);
 	streetLights.forEach(streetLight => road.addChild(streetLight));
 	
-	const columns = getColumns(gl, glMatrix, textureMap.getTexture("sidewalk"), textureMap.getTexture("grey"), levels, amountOfColumns);
+	const columns = getColumns(gl, glMatrix, textureMap.getTexture("concrete"), textureMap.getTexture("grey"), levels, amountOfColumns);
 	columns.forEach(column => road.addChild(column));
 
 	const cars = getCars(gl, glMatrix, carPositions);

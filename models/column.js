@@ -18,7 +18,7 @@ function getPillar(gl, glMatrix, texture, columnHeight) {
 		0,0,columnHeight,1
 	);
 	
-	const pillarShape = new Circle(8);
+	const pillarShape = new Circle(8, 16);
 	const pillarBuffers = generateSweepSurface(
 		gl,
 		glMatrix,
