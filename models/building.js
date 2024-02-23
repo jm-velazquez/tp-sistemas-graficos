@@ -4,8 +4,6 @@ export const BUILDING_SIDE = 20;
 
 const MAX_BUILDING_HEIGHT = MAX_BUILDING_STORIES * STORY_HEIGHT;
 
-
-
 export function getBuildingBuffers(gl, height, buildingVariation, 
 	xOffset = 0, yOffset = 0, zOffset = 0, indexBufferOffset = 0) {
 	const positionBuffer = [];

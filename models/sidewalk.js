@@ -4,7 +4,7 @@ import { generateSweepSurface } from "../surface-generator.js";
 
 export const SIDEWALK_HEIGHT = 0.2;
 export const BLOCK_SIDE = 100;
-const BLOCK_CORNER_RADIUS = 10;
+export const BLOCK_CORNER_RADIUS = 10;
 
 export function getSidewalk(gl, glMatrix, texture) {
 	let level0Matrix = glMatrix.mat4.fromValues(

@@ -88,6 +88,7 @@
             import { getColumn } from "./models/column.js";
             import { CarPositions } from "./animations/car-animations.js";
             import { TextureMap } from "./texture-map.js";
+            import { getStreetGrid } from "./models/street-grid.js";
             
             const CURVE_EDITOR_SIDE = 300;
 
@@ -332,6 +333,9 @@
                 highway.rotationDegree = Math.PI  / 2;
                 highway.translationVector = [0, 0, 30];
                 highway.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+
+                const streetGrid = getStreetGrid(gl, textureMap);
+                streetGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix)
             }
 
             function animate() {
