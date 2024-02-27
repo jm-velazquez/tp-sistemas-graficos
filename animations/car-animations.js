@@ -1,77 +1,63 @@
-import { LUT } from "../curves/look-up-table.js";
-import { 
-	translateMatricesAlongNormalAxis,
-	reverseLevelMatrices,
-	getPositionsFromLevelMatrices,
-	generateLevelMatrices,
-} from "../curves/level-matrix-generator.js";
+import { reverseLevelMatrices } from "../curves/level-matrix-generator.js";
+import { CarAnimation } from "./car-animation.js";
 
-const LANE_DISTANCE = 6.25;
-const LANE_VELOCITIES = [1, 1.2, 1.4,1.4, 1.2, 1];
+const LANE_OFFSETS = [21, 12, 4, 4, 12, 21];
+const LANE_VELOCITIES = [0.5, 0.6, 0.7, 0.7, 0.6, 0.5];
 
-export class CarPositions {
-	LUTs = [];
-	levelMatrices = [];
-	currentDistanceSums = Array(6).fill(0);
+export class CarAnimations {
+	carAnimations = [];
 
-	constructor(glMatrix, levels) {
-		const levelMatrices = generateLevelMatrices(glMatrix, levels);
-		const reversedLevelMatrices = reverseLevelMatrices(glMatrix, levelMatrices);
-		this.levelMatrices.push(translateMatricesAlongNormalAxis(
-			glMatrix,
-			reversedLevelMatrices,
-			LANE_DISTANCE * 3,
-		));
-		this.levelMatrices.push(translateMatricesAlongNormalAxis(
-			glMatrix,
-			reversedLevelMatrices,
-			LANE_DISTANCE * 2,
-		));
-		this.levelMatrices.push(translateMatricesAlongNormalAxis(
-			glMatrix,
-			reversedLevelMatrices,
-			LANE_DISTANCE,
-		));
-		this.levelMatrices.push(translateMatricesAlongNormalAxis(
+	constructor(glMatrix, levelMatrices) {
+		const reversedLevelMatrices = reverseLevelMatrices(glMatrix, levelMatrices).reverse();
+		
+		this.carAnimations.push(new CarAnimation(
 			glMatrix,
 			levelMatrices,
-			LANE_DISTANCE,
+			LANE_VELOCITIES[0],
+			LANE_OFFSETS[0],
 		));
-		this.levelMatrices.push(translateMatricesAlongNormalAxis(
+
+		this.carAnimations.push(new CarAnimation(
 			glMatrix,
 			levelMatrices,
-			LANE_DISTANCE * 2,
+			LANE_VELOCITIES[1],
+			LANE_OFFSETS[1],
 		));
-		this.levelMatrices.push(translateMatricesAlongNormalAxis(
+
+		this.carAnimations.push(new CarAnimation(
 			glMatrix,
 			levelMatrices,
-			LANE_DISTANCE * 3,
+			LANE_VELOCITIES[2],
+			LANE_OFFSETS[2],
 		));
-		this.LUTs.push(
-			...this.levelMatrices.map(
-				levelMatrices => new LUT(getPositionsFromLevelMatrices(levelMatrices))
-			)
-		); 
+
+		this.carAnimations.push(new CarAnimation(
+			glMatrix,
+			reversedLevelMatrices,
+			LANE_VELOCITIES[3],
+			LANE_OFFSETS[3],
+		));
+
+		this.carAnimations.push(new CarAnimation(
+			glMatrix,
+			reversedLevelMatrices,
+			LANE_VELOCITIES[4],
+			LANE_OFFSETS[4],
+		));
+
+		this.carAnimations.push(new CarAnimation(
+			glMatrix,
+			reversedLevelMatrices,
+			LANE_VELOCITIES[5],
+			LANE_OFFSETS[5],
+		));
 	}
 
-	getNewPositionAndRotationAngle(glMatrix, laneNumber) {
-		let newDistanceSum = this.currentDistanceSums[laneNumber] + LANE_VELOCITIES[laneNumber];
-		if (newDistanceSum > this.LUTs[laneNumber].getTotalDistance()) newDistanceSum -= this.LUTs[laneNumber].getTotalDistance();
-		const newPositionOnXZPlane = this.LUTs[laneNumber].getInterpolatedPoint(newDistanceSum);
-		const index = this.LUTs[laneNumber].getClosestPointAndIndex(newDistanceSum)[1];
-		const newLevelMatrix = this.levelMatrices[laneNumber][index];
-		const tangent = newLevelMatrix.slice(8, 12);
-		const angle = glMatrix.vec3.angle(tangent, [1,0,0]);
-		this.currentDistanceSums[laneNumber] = newDistanceSum;
-		const newPosition = [newPositionOnXZPlane[0], 0, newPositionOnXZPlane[1]];
-		return [newPosition, angle];
-	}
-
-	getNewPositionsAndRotationAngles(glMatrix) {
-		const results = [];
-		for (let i = 0; i < 6; i++) {
-			results.push(this.getNewPositionAndRotationAngle(glMatrix, i));
+	getCarsAnimationInfo(glMatrix) {
+		const animationInfoPerCar = this.carAnimations.map(carAnimation => carAnimation.getNewPositionAndRotationAngle(glMatrix));
+		for (let i = 0; i < 3; i++) {
+			animationInfoPerCar[i].angle = - animationInfoPerCar[i].angle;
 		}
-		return results;
+		return animationInfoPerCar;
 	}
 }

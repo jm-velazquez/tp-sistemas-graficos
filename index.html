@@ -54,6 +54,8 @@
 
             uniform sampler2D uSampler;
             uniform float lightModifier;
+            uniform bool usesNormalMap;
+            uniform sampler2D uSamplerNormal;
 
             void main(void) {
                 float ambientFloat = dot(vNormal, vec3(0, 0, 1)) * 0.5 + 0.5;
@@ -61,7 +63,7 @@
                 vec3 directionalLightColor = vec3(0.953, 0.898, 0.737);
                 vec3 directionalVector = normalize(vec3(1., 2., 3.));
 
-                ambientLight = ambientLight * 0.6;
+                ambientLight = ambientLight * 0.4;
 
                 float directional = max(dot(vNormal.xyz, directionalVector), 0.0);
                 vec4 textureColor = texture2D(uSampler, vTextureCoord);
@@ -75,20 +77,19 @@
         <script type="text/javascript" src="./js/dat.gui.min.js"></script>
 
         <script type="module">
-            import { getCar } from "./models/car.js";
-            import { getHighway } from "./models/highway.js";
-            import { getBlock, getBuildingBlockHeights } from "./models/block.js";
-            import { getBlockGrid, getBuildingBlockHeightsPerBlock, getBuildingVariationsPerBlock, getEmptyGrids } from "./models/block-grid.js";
+            import { getCar } from "./models/car/car.js";
+            import { getHighway } from "./models/highway/highway.js";
+            import { getBlockGrid, getBuildingBlockHeightsPerBlock, getBuildingVariationsPerBlock, getEmptyGrids } from "./models/block/block-grid.js";
             import { getSkybox } from "./models/skybox.js";
             import { drawGrid } from "./models/grid.js";
             import { OrbitalCamera } from "./cameras/orbital-camera.js";
             import { FirstPersonCamera } from "./cameras/first-person-camera.js";
             import { CurveEditor } from "./curve-editor/curve-editor.js";
             import { Bezier2 } from "./curves/bezier.js";
-            import { getColumn } from "./models/column.js";
-            import { CarPositions } from "./animations/car-animations.js";
+            import { CarAnimations } from "./animations/car-animations.js";
             import { TextureMap } from "./texture-map.js";
-            import { getStreetGrid } from "./models/street-grid.js";
+            import { getStreetGrid } from "./models/street/street-grid.js";
+            import { generateLevelMatrices } from "../curves/level-matrix-generator.js";
             
             const CURVE_EDITOR_SIDE = 300;
 
@@ -289,7 +290,8 @@
             let emptyGrids = [];
             let amountOfLights = app.lights;
             let amountOfColumns = app.columns;
-            let carPositions = null;
+            let carAnimations = null;
+            const carVariations = ["red", "grey", "green", "orange", "blue", "purple"];
 
             function generateSceneParameters() {
                 buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
@@ -308,7 +310,8 @@
                 amountOfLights = Math.floor(app.lights);
                 amountOfColumns = Math.floor(app.columns);
 
-                carPositions = new CarPositions(glMatrix, highwayLevels);
+                const levelMatrices = generateLevelMatrices(glMatrix, highwayLevels);
+                carAnimations = new CarAnimations(glMatrix, levelMatrices);
             }
 
             let textureMap = null;
@@ -320,22 +323,42 @@
             function createScene() {
                 drawGrid(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
-                const car = getCar(gl, glMatrix);
-                car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
                 const blockGrid = getBlockGrid(gl, glMatrix, textureMap, buildingHeightsPerBlock, buildingVariationsPerBlock, emptyGrids);
                 blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
                 const skybox = getSkybox(gl, textureMap);
                 skybox.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
-                const highway = getHighway(gl, glMatrix, textureMap, highwayLevels, amountOfLights, amountOfColumns, carPositions);
+                const animationInfo = carAnimations.getCarsAnimationInfo(glMatrix);
+                console.log(animationInfo);
+                const cars = [];
+                for (let i = 0; i < 6; i++) {
+                    cars.push(getCar(gl, glMatrix, textureMap, carVariations[i]));
+                    cars[i].scalingVector = [2,2,2];
+                    cars[i].translationVector = animationInfo[i].newPosition;
+                    cars[i].rotationAxis = [0, 1, 0];
+                    cars[i].rotationDegree = animationInfo[i].angle;
+                }
+
+                const highway = getHighway(gl, glMatrix, textureMap, highwayLevels, amountOfLights, amountOfColumns);
                 highway.rotationAxis = [1, 0, 0];
                 highway.rotationDegree = Math.PI  / 2;
                 highway.translationVector = [0, 0, 30];
+
+                for (let i = 0; i < 6; i++) {
+                    highway.addChild(cars[i]);
+                }
+
                 highway.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
                 const streetGrid = getStreetGrid(gl, textureMap);
-                streetGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix)
+                streetGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+
+                const car = getCar(gl, glMatrix, textureMap);
+                car.rotationAxis = [1, 0, 0];
+                car.rotationDegree = Math.PI / 2;
+                car.translationVector = [0,0,2];
+                car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
             }
 
             function animate() {
@@ -358,8 +381,6 @@
                     if (keysPressed.d) highwayCamera.moveRight(glMatrix, running);
                     viewMatrix = highwayCamera.getMatrix(glMatrix);  
                 }
-                
-                carPositions.getNewPositionsAndRotationAngles(glMatrix);   
             }
 
             GUI();

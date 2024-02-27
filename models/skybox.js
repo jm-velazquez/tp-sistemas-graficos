@@ -1,4 +1,4 @@
-import { Model } from "../model.js";
+import { Model } from "./model.js";
 import { getGlBuffersFromBuffers } from "../gl/gl-buffers.js";
 
 const SIDE_LENGTH = 5000;

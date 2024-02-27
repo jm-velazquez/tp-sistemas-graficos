@@ -5,6 +5,7 @@ function distance(a, b) {
 export class LUT {
 	pointsByDistance = {};
 	totalDistance = 0;
+
 	constructor(points) {
 		this.pointsByDistance[0] = points[0];
 		let lastDistanceSum = 0;
@@ -24,14 +25,15 @@ export class LUT {
 				const lastPoint = this.pointsByDistance[lastDistance];
 				const currentPoint = this.pointsByDistance[currentDistance];
 				const u = (distance - lastDistance) / (currentDistance - lastDistance);
-				return [
+				const newPoint = [
 					lastPoint[0] * (1 - u) + currentPoint[0] * u,
 					lastPoint[1] * (1 - u) + currentPoint[1] * u,
 				];
+				return newPoint;
 			}
 			lastDistance = currentDistance;
 		}
-		alert("Distance out of bounds");
+		alert("LUT: distance out of bounds");
 	}
 
 	getClosestPointAndIndex(distance) {
@@ -40,7 +42,7 @@ export class LUT {
 		let index = -1;
 		for (let currentDistance in this.pointsByDistance) {
 			if (distance >= lastDistance && distance <= currentDistance) {
-				return [this.pointsByDistance[lastDistance], index];	
+				return [this.pointsByDistance[currentDistance], index];	
 			}
 			index += 1;
 			lastDistance = currentDistance;
