@@ -66,6 +66,7 @@ export class TextureMap {
 	constructor(gl) {
 		this.map.buildings = loadTexture(gl, "./resources/buildings.jpg");
 		this.map.sidewalk = loadTexture(gl, "./resources/sidewalk2.jpg");
+		this.map.sidewalkNormal = loadTexture(gl, "./resources/sidewalk2_normal.jpg");
 		this.map.highwayRoad = loadTexture(gl, "./resources/highway_road_wide.jpg");
 		this.map.grass = loadTexture(gl, "./resources/grass2.jpg");
 		this.map.concrete = loadTexture(gl, "./resources/concrete2.jpg");

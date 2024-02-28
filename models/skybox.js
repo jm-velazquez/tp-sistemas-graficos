@@ -121,7 +121,7 @@ export function getSkybox(gl, textureMap) {
 		glBuffers.glIndexBuffer,
 		glBuffers.glUVBuffer,
 		textureMap.getTexture("skybox"),
-		0,
+		false,
 	);
 	aux.addChild(skybox);
 

@@ -32,9 +32,14 @@
 
             uniform mat4 normalMatrix;
 
+            uniform vec3 light1WorldPosition;
+            uniform vec3 light2WorldPosition;
+
             varying highp vec3 vWorldPos;
             varying vec3 vNormal;
             varying highp vec2 vTextureCoord;
+            varying vec3 surfaceToLight1;
+            varying vec3 surfaceToLight2;
 
             void main(void) {
                 gl_Position = projMatrix * viewMatrix * modelMatrix * vec4(aVertexPosition, 1.0);
@@ -43,6 +48,8 @@
                 vNormal=(normalMatrix*vec4(aVertexNormal,1.0)).xyz;       //la normal en coordenadas de mundo
               
                 vTextureCoord = aTextureCoord;
+                surfaceToLight1 = light1WorldPosition - vWorldPos;
+                surfaceToLight2 = light2WorldPosition - vWorldPos;
             }
         </script>
 
@@ -51,25 +58,62 @@
             varying vec3 vWorldPos;
             varying vec3 vNormal;
             varying vec2 vTextureCoord;
+            varying vec3 surfaceToLight1;
+            varying vec3 surfaceToLight2;
 
             uniform sampler2D uSampler;
-            uniform float lightModifier;
             uniform bool usesNormalMap;
             uniform sampler2D uSamplerNormal;
 
+            uniform bool affectedByLighting;
+
+            // Ambient lighting
+            uniform vec3 ambientTopColor;
+            uniform vec3 ambientBottomColor;
+            uniform float ambientLightStrength;
+
+            // Directional lighting
+            uniform vec3 directionalLightColor;
+            uniform vec3 directionalLightVector;
+            uniform float directionalLightStrength;
+
+            // Point lighting
+            uniform vec3 pointLightColor;
+            uniform float pointLightStrength;
+
             void main(void) {
-                float ambientFloat = dot(vNormal, vec3(0, 0, 1)) * 0.5 + 0.5;
-                vec3 ambientLight = mix(vec3(1., 0.5, 0.3), vec3(0.5, 0.5, 1.), ambientFloat);
-                vec3 directionalLightColor = vec3(0.953, 0.898, 0.737);
-                vec3 directionalVector = normalize(vec3(1., 2., 3.));
-
-                ambientLight = ambientLight * 0.4;
-
-                float directional = max(dot(vNormal.xyz, directionalVector), 0.0);
                 vec4 textureColor = texture2D(uSampler, vTextureCoord);
-                vec3 lightColor = ambientLight + (directionalLightColor * directional);
+                vec3 normal = vNormal;
+
+                if (usesNormalMap) {
+                    normal = texture2D(uSamplerNormal, vTextureCoord).rgb;
+                }
+
+                // Ambient lighting 
+                float ambientFloat = dot(normal, vec3(0, 0, 1)) * 0.5 + 0.5;
+                vec3 ambientLight = mix(normalize(ambientBottomColor), normalize(ambientTopColor), ambientFloat);
                 
-                gl_FragColor = vec4(lightColor,1.0) * lightModifier + textureColor * .8;
+                // Directional lighting
+                vec3 directionalColor = normalize(directionalLightColor);
+                vec3 directionalVector = normalize(directionalLightVector);
+                float directional = max(dot(normal.xyz, directionalVector), 0.0);
+
+                // Point lighting
+                normal = normalize(normal);
+                float pointLight1 = dot(normal, normalize(surfaceToLight1));
+                float pointLight2 = dot(normal, normalize(surfaceToLight2));
+                vec3 pointLightColorNormalized = normalize(pointLightColor);
+                vec3 pointLight1Color = pointLightColorNormalized * pointLight1;
+                vec3 pointLight2Color = pointLightColorNormalized * pointLight2;
+                
+                gl_FragColor = textureColor;
+                if (affectedByLighting) {
+                    vec3 lightColor = directionalColor * directional * directionalLightStrength;
+                    lightColor += pointLight1Color * pointLightStrength;
+                    lightColor += pointLight2Color * pointLightStrength;
+                    lightColor += ambientLight * ambientLightStrength;
+                    gl_FragColor.rgb *= lightColor;
+                }
             }
         </script>
         
@@ -293,6 +337,25 @@
             let carAnimations = null;
             const carVariations = ["red", "grey", "green", "orange", "blue", "purple"];
 
+            const lightParameters = {
+                ambientLight: {
+                    topColor: [115, 146, 235],
+                    bottomColor: [216, 197, 150],
+                    strength: 1,
+                },
+                directionalLight: {
+                    color: [252,255,181],
+                    direction: [1, 2, 3],
+                    strength: 1,
+                },
+                pointLight: {
+                    position1: null,
+                    position2: null,
+                    color: [255, 230, 146],
+                    strength: 1.5,
+                },
+            }
+
             function generateSceneParameters() {
                 buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock();
                 buildingVariationsPerBlock = getBuildingVariationsPerBlock();
@@ -310,6 +373,17 @@
                 amountOfLights = Math.floor(app.lights);
                 amountOfColumns = Math.floor(app.columns);
 
+                lightParameters.pointLight.position1 = [
+                    highwayLevels[0][0],
+                    - highwayLevels[0][1],
+                    50,
+                ];
+                lightParameters.pointLight.position2 = [
+                    highwayLevels[highwayLevels.length - 1][0],
+                    - highwayLevels[highwayLevels.length - 1][0],
+                    50,
+                ];
+
                 const levelMatrices = generateLevelMatrices(glMatrix, highwayLevels);
                 carAnimations = new CarAnimations(glMatrix, levelMatrices);
             }
@@ -324,13 +398,12 @@
                 drawGrid(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
 
                 const blockGrid = getBlockGrid(gl, glMatrix, textureMap, buildingHeightsPerBlock, buildingVariationsPerBlock, emptyGrids);
-                blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+                blockGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix, lightParameters);
 
                 const skybox = getSkybox(gl, textureMap);
-                skybox.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+                skybox.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix, lightParameters);
 
                 const animationInfo = carAnimations.getCarsAnimationInfo(glMatrix);
-                console.log(animationInfo);
                 const cars = [];
                 for (let i = 0; i < 6; i++) {
                     cars.push(getCar(gl, glMatrix, textureMap, carVariations[i]));
@@ -349,16 +422,16 @@
                     highway.addChild(cars[i]);
                 }
 
-                highway.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+                highway.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix, lightParameters);
 
                 const streetGrid = getStreetGrid(gl, textureMap);
-                streetGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+                streetGrid.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix, lightParameters);
 
                 const car = getCar(gl, glMatrix, textureMap);
                 car.rotationAxis = [1, 0, 0];
                 car.rotationDegree = Math.PI / 2;
                 car.translationVector = [0,0,2];
-                car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix);
+                car.draw(gl, glMatrix, glProgram, modelMatrix, viewMatrix, projMatrix, lightParameters);
             }
 
             function animate() {

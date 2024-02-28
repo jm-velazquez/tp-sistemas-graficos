@@ -80,7 +80,7 @@ export function getBlock(gl, glMatrix, textureMap, buildingHeights, buildingVari
 		glBlockBuffers.glUVBuffer,
 		textureMap.getTexture("buildings"),
 	);
-	const sidewalk = getSidewalk(gl, glMatrix, textureMap.getTexture("sidewalk"));
+	const sidewalk = getSidewalk(gl, glMatrix, textureMap.getTexture("sidewalk"), textureMap.getTexture("sidewalkNormal"));
 	sidewalk.addChild(buildings);
 	return sidewalk;
 }

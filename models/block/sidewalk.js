@@ -6,7 +6,7 @@ export const SIDEWALK_HEIGHT = 0.2;
 export const BLOCK_SIDE = 100;
 export const BLOCK_CORNER_RADIUS = 10;
 
-export function getSidewalk(gl, glMatrix, texture) {
+export function getSidewalk(gl, glMatrix, texture, normalMap) {
 	let level0Matrix = glMatrix.mat4.fromValues(
 		1,0,0,0,
 		0,1,0,0,
@@ -36,5 +36,6 @@ export function getSidewalk(gl, glMatrix, texture) {
 		sidewalkBuffers.glIndexBuffer,
 		sidewalkBuffers.glUVBuffer,
 		texture,
+		// normalMap = normalMap,
 	);
 }
