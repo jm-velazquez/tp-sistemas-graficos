@@ -24,7 +24,9 @@ function getPillar(gl, glMatrix, texture, columnHeight) {
 		glMatrix,
 		pillarShape,
 		[level0Matrix, level1Matrix],
-		false, false
+		false,
+		false,
+		2,
 	);
 	return new Model(
 		gl.TRIANGLE_STRIP,
@@ -42,7 +44,9 @@ function getBase(gl, glMatrix, texture) {
 		gl,
 		glMatrix,
 		baseShape,
-		20, true, true,
+		20,
+		true,
+		true,
 	);
 	return new Model(
 		gl.TRIANGLE_STRIP,

@@ -1,5 +1,20 @@
 import { getGlBuffersFromBuffers } from "./gl/gl-buffers.js";
 
+function distance2(vec1, vec2) {
+    return Math.sqrt(Math.pow(vec1[0] - vec2[0], 2) + Math.pow(vec1[1] - vec2[1], 2));
+}
+
+function getShapePerimeter(points) {
+    let perimeter = 0;
+    let lastPoint = points[0];
+    for (let i = 1; i < points.length; i++) {
+        const currentPoint = points[i];
+        perimeter += distance2(lastPoint, currentPoint);
+        lastPoint = currentPoint;
+    }
+    return perimeter;
+}
+
 export function generateSweepSurface(gl, glMatrix, coverShape, levelMatrices, withBottomCover, withTopCover, widthUVMultiplier = 1) {
 	let positionBuffer = [];
 	let normalBuffer = [];
@@ -7,10 +22,15 @@ export function generateSweepSurface(gl, glMatrix, coverShape, levelMatrices, wi
 
     const { positionArray, normalArray, uvArray } = coverShape.getArrays();
 
+    const shapePerimeter = getShapePerimeter(positionArray);
+
     for (let i = 0; i < levelMatrices.length; i++) {
         let normalMatrix = glMatrix.mat4.create();
         glMatrix.mat4.invert(normalMatrix, levelMatrices[i]);
         glMatrix.mat4.transpose(normalMatrix, normalMatrix);
+
+        let lastPoint = positionArray[0];
+        let distanceSum = 0;
 		for (let j = 0; j < positionArray.length; j++) {
 			const newPosition = glMatrix.vec4.create();
 			const newNormal = glMatrix.vec4.create();
@@ -19,9 +39,13 @@ export function generateSweepSurface(gl, glMatrix, coverShape, levelMatrices, wi
 
 			positionBuffer.push(newPosition[0], newPosition[1], newPosition[2]);
 			normalBuffer.push(newNormal[0], newNormal[1], newNormal[2]);
-            const u = j % 2 === 0 ? 1 * widthUVMultiplier : 0;
+
+            distanceSum += distance2(lastPoint, positionArray[j]);
+            const u = (distanceSum / shapePerimeter) * widthUVMultiplier;
             const v = i % 2 === 0 ? 1 : 0;
             uvBuffer.push(u, v);
+
+            lastPoint = positionArray[j];
 		}
     }
 

@@ -69,13 +69,12 @@ export class TextureMap {
 		this.map.sidewalkNormal = loadTexture(gl, "./resources/sidewalk2_normal.jpg");
 		this.map.highwayRoad = loadTexture(gl, "./resources/highway_road_wide.jpg");
 		this.map.grass = loadTexture(gl, "./resources/grass2.jpg");
-		this.map.concrete = loadTexture(gl, "./resources/concrete2.jpg");
+		this.map.concrete = loadTexture(gl, "./resources/concrete.jpg");
+		this.map.concreteWall = loadTexture(gl, "./resources/concrete_wall.jpg");
 		this.map.skybox = loadTexture(gl, "./resources/skybox.png");
 		this.map.street = loadTexture(gl, "./resources/street.jpg");
 		this.map.grey = loadMonocromaticTexture(gl, 33, 33, 33);
 		this.map.lightGrey = loadMonocromaticTexture(gl, 189, 189, 189);
-		this.map.lightGreen = loadMonocromaticTexture(gl, 0, 255, 0);
-		this.map.teal = loadMonocromaticTexture(gl, 0, 52, 43);
 		this.map.red = loadMonocromaticTexture(gl, 183, 28, 28);
 		this.map.green = loadMonocromaticTexture(gl, 85, 139, 47);
 		this.map.orange = loadMonocromaticTexture(gl, 230, 81, 0);

@@ -22,7 +22,7 @@ export class CarAnimation {
 			newDistanceTravelled -= this.lookUpTable.getTotalDistance();
 		this.currentDistanceTravelled = newDistanceTravelled;
 		const newPositionOnXZPlane = this.lookUpTable.getInterpolatedPoint(newDistanceTravelled);
-		const newPosition = [newPositionOnXZPlane[0], 2, newPositionOnXZPlane[1]]
+		const newPosition = [newPositionOnXZPlane[0], 3, newPositionOnXZPlane[1]]
 		
 		const closestPointIndex = this.lookUpTable.getClosestPointAndIndex(newDistanceTravelled)[1];
 		const closestLevelMatrix = this.levelMatrices[closestPointIndex];
