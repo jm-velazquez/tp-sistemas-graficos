@@ -117,23 +117,23 @@
             }
         </script>
         
-        <script type="text/javascript" src="./js/gl-matrix-min.js"></script>
-        <script type="text/javascript" src="./js/dat.gui.min.js"></script>
+        <script type="text/javascript" src="/js/gl-matrix-min.js"></script>
+        <script type="text/javascript" src="/js/dat.gui.min.js"></script>
 
         <script type="module">
-            import { getCar } from "./models/car/car.js";
-            import { getHighway } from "./models/highway/highway.js";
-            import { getBlockGrid, getBuildingBlockHeightsPerBlock, getBuildingVariationsPerBlock, getEmptyGrids } from "./models/block/block-grid.js";
-            import { getSkybox } from "./models/skybox.js";
-            import { drawGrid } from "./models/grid.js";
-            import { OrbitalCamera } from "./cameras/orbital-camera.js";
-            import { FirstPersonCamera } from "./cameras/first-person-camera.js";
-            import { CurveEditor } from "./curve-editor/curve-editor.js";
-            import { Bezier2 } from "./curves/bezier.js";
-            import { CarAnimations } from "./animations/car-animations.js";
-            import { TextureMap } from "./texture-map.js";
-            import { getStreetGrid } from "./models/street/street-grid.js";
-            import { generateLevelMatrices } from "./curves/level-matrix-generator.js";
+            import { getCar } from "/models/car/car.js";
+            import { getHighway } from "/models/highway/highway.js";
+            import { getBlockGrid, getBuildingBlockHeightsPerBlock, getBuildingVariationsPerBlock, getEmptyGrids } from "/models/block/block-grid.js";
+            import { getSkybox } from "/models/skybox.js";
+            import { drawGrid } from "/models/grid.js";
+            import { OrbitalCamera } from "/cameras/orbital-camera.js";
+            import { FirstPersonCamera } from "/cameras/first-person-camera.js";
+            import { CurveEditor } from "/curve-editor/curve-editor.js";
+            import { Bezier2 } from "/curves/bezier.js";
+            import { CarAnimations } from "/animations/car-animations.js";
+            import { TextureMap } from "/texture-map.js";
+            import { getStreetGrid } from "/models/street/street-grid.js";
+            import { generateLevelMatrices } from "/curves/level-matrix-generator.js";
             
             const CURVE_EDITOR_SIDE = 300;
 
@@ -274,6 +274,7 @@
             const highwayCamera = new FirstPersonCamera(glMatrix, [0,0,32]);
 
             const keysPressed = {
+                leftClick: false,
                 plus: false,
                 minus: false,
                 w: false,
@@ -286,14 +287,14 @@
             let cameraMode = "orbital";
 
             canvas.addEventListener("mousemove", (e) => {
+                if (!keysPressed.leftClick) return;
                 if (cameraMode === "orbital") {
                     orbitalCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
                 } else if (cameraMode === "street") {
                     streetCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
                 } else {
                     highwayCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
-                }
-                    
+                }    
             });
 
             window.addEventListener("keydown", (e) => {
@@ -324,6 +325,18 @@
                 if (cameraMode === "orbital") {
                     if (e.deltaY > 0) orbitalCamera.zoomOut();
                     else if (e.deltaY < 0) orbitalCamera.zoomIn();
+                }
+            });
+
+            window.addEventListener("mousedown", (e) => {
+                if (e.button === 0) {
+                    keysPressed.leftClick = true;
+                }
+            });
+
+            window.addEventListener("mouseup", (e) => {
+                if (e.button === 0) {
+                    keysPressed.leftClick = false;
                 }
             });
 
