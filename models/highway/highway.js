@@ -1,4 +1,7 @@
-import { generateLevelMatrices, translateMatricesAlongNormalAxis } from "../../curves/level-matrix-generator.js";
+import {
+  generateLevelMatrices,
+  translateMatricesAlongNormalAxis,
+} from "../../curves/level-matrix-generator.js";
 import { Rectangle } from "../../shapes/rectangle.js";
 import { Trapezoid } from "../../shapes/trapezoid.js";
 import { generateSweepSurface } from "../../surface-generator.js";
@@ -12,109 +15,168 @@ const ROAD_WIDTH = 48;
 const ROAD_HEIGHT = 6;
 
 function getLights(gl, glMatrix, texture, levelMatrices, amountOfLights) {
-	const levels = levelMatrices.map(levelMatrix => [levelMatrix[12], levelMatrix[14]]);
-	const lut = new LUT(levels);
-	const distance = lut.getTotalDistance() / (amountOfLights - 1);
-	
-	const streetLights = [];
-	for (let i = 0; i < amountOfLights; i++) {
-		const streetLight = getStreetLight(gl, glMatrix, texture);
-		const position = lut.getInterpolatedPoint(distance * i);
-		
-		// Get normal of the closest past level
-		const index = lut.getClosestPointAndIndex(distance * i)[1];
-		const levelMatrix = levelMatrices[index];
-		const normal = [levelMatrix[0], levelMatrix[1], levelMatrix[2]];
-		
-		const isEven = i % 2 === 0;
-		streetLight.rotationAxis = [0,1,0];
-		streetLight.rotationDegree = glMatrix.vec3.angle(normal, [0,0,1]) + Math.PI / 2 + isEven * Math.PI;
-		streetLight.translationVector = [position[0], 2, position[1]];
-		streetLights.push(streetLight);
-	}
-	return streetLights;
+  const levels = levelMatrices.map((levelMatrix) => [
+    levelMatrix[12],
+    levelMatrix[14],
+  ]);
+  const lut = new LUT(levels);
+  const distance = lut.getTotalDistance() / (amountOfLights - 1);
+
+  const streetLights = [];
+  for (let i = 0; i < amountOfLights; i++) {
+    const streetLight = getStreetLight(gl, glMatrix, texture);
+    const position = lut.getInterpolatedPoint(distance * i);
+
+    // Get normal of the closest past level
+    const index = lut.getClosestPointAndIndex(distance * i)[1];
+    const levelMatrix = levelMatrices[index];
+    const normal = [levelMatrix[0], levelMatrix[1], levelMatrix[2]];
+
+    const isEven = i % 2 === 0;
+    streetLight.rotationAxis = [0, 1, 0];
+    streetLight.rotationDegree =
+      glMatrix.vec3.angle(normal, [0, 0, 1]) + Math.PI / 2 + isEven * Math.PI;
+    streetLight.translationVector = [position[0], 2, position[1]];
+    streetLights.push(streetLight);
+  }
+  return streetLights;
 }
 
-function getColumns(gl, glMatrix, pillarTexture, baseTexture, levels, amountOfColumns) {
-	const lut = new LUT(levels);
-	const distance = lut.getTotalDistance() / (amountOfColumns - 1);
-	
-	const columns = [];
-	for (let i = 0; i < amountOfColumns; i++) {
-		const column = getColumn(gl, glMatrix, pillarTexture, baseTexture, 30);
-		const position = lut.getInterpolatedPoint(distance * i);
-		column.translationVector = [position[0], 0, position[1]];
-		columns.push(column);
-	}
-	return columns;
+function getColumns(
+  gl,
+  glMatrix,
+  pillarTexture,
+  baseTexture,
+  levels,
+  amountOfColumns,
+) {
+  const lut = new LUT(levels);
+  const distance = lut.getTotalDistance() / (amountOfColumns - 1);
+
+  const columns = [];
+  for (let i = 0; i < amountOfColumns; i++) {
+    const column = getColumn(gl, glMatrix, pillarTexture, baseTexture, 30);
+    const position = lut.getInterpolatedPoint(distance * i);
+    column.translationVector = [position[0], 0, position[1]];
+    columns.push(column);
+  }
+  return columns;
 }
 
 function getRoad(gl, glMatrix, texture, levelMatrices) {
-	const roadShape = new Rectangle(ROAD_WIDTH, ROAD_HEIGHT);
-	const roadBuffers = generateSweepSurface(
-		gl,
-		glMatrix,
-		roadShape,
-		levelMatrices,
-		true,
-		true,
-		1,
-	);
+  const roadShape = new Rectangle(ROAD_WIDTH, ROAD_HEIGHT);
+  const roadBuffers = generateSweepSurface(
+    gl,
+    glMatrix,
+    roadShape,
+    levelMatrices,
+    true,
+    true,
+    1,
+  );
 
-	return new Model(
-		gl.TRIANGLE_STRIP,
-		roadBuffers.glPositionBuffer,
-		roadBuffers.glNormalBuffer,
-		roadBuffers.glIndexBuffer,
-		roadBuffers.glUVBuffer,
-		texture,
-	);
+  return new Model(
+    gl.TRIANGLE_STRIP,
+    roadBuffers.glPositionBuffer,
+    roadBuffers.glNormalBuffer,
+    roadBuffers.glIndexBuffer,
+    roadBuffers.glUVBuffer,
+    texture,
+  );
 }
 
 function getGuardrail(gl, glMatrix, texture, levelMatrices) {
-	const guardrailShape = new Trapezoid(1,0.5,1);
-	const guardrailBuffers = generateSweepSurface(
-		gl,
-		glMatrix,
-		guardrailShape,
-		levelMatrices,
-		true,
-		true
-	);
+  const guardrailShape = new Trapezoid(1, 0.5, 1);
+  const guardrailBuffers = generateSweepSurface(
+    gl,
+    glMatrix,
+    guardrailShape,
+    levelMatrices,
+    true,
+    true,
+  );
 
-	const guardrail = new Model(
-		gl.TRIANGLE_STRIP,
-		guardrailBuffers.glPositionBuffer,
-		guardrailBuffers.glNormalBuffer,
-		guardrailBuffers.glIndexBuffer,
-		guardrailBuffers.glUVBuffer,
-		texture,
-	);
-	guardrail.translationVector = [0, 3.5, 0];
-	return guardrail;
+  const guardrail = new Model(
+    gl.TRIANGLE_STRIP,
+    guardrailBuffers.glPositionBuffer,
+    guardrailBuffers.glNormalBuffer,
+    guardrailBuffers.glIndexBuffer,
+    guardrailBuffers.glUVBuffer,
+    texture,
+  );
+  guardrail.translationVector = [0, 3.5, 0];
+  return guardrail;
 }
 
-export function getHighway(gl, glMatrix, textureMap, levels, amountOfLights, amountOfColumns) {
-	const levelMatrices = generateLevelMatrices(glMatrix, levels);
-	
-	const road = getRoad(gl, glMatrix, textureMap.getTexture("highwayRoad"), levelMatrices);
+export function getHighway(
+  gl,
+  glMatrix,
+  textureMap,
+  levels,
+  amountOfLights,
+  amountOfColumns,
+) {
+  const levelMatrices = generateLevelMatrices(glMatrix, levels);
 
-	const middleGuardrail = getGuardrail(gl, glMatrix, textureMap.getTexture("concrete"), levelMatrices);
-	road.addChild(middleGuardrail);
+  const road = getRoad(
+    gl,
+    glMatrix,
+    textureMap.getTexture("highwayRoad"),
+    levelMatrices,
+  );
 
-	const rightGuardrailMatrices = translateMatricesAlongNormalAxis(glMatrix, levelMatrices, ROAD_WIDTH / 2);
-	const rightGuardrail = getGuardrail(gl, glMatrix, textureMap.getTexture("concrete"), rightGuardrailMatrices);
-	road.addChild(rightGuardrail);
+  const middleGuardrail = getGuardrail(
+    gl,
+    glMatrix,
+    textureMap.getTexture("concrete"),
+    levelMatrices,
+  );
+  road.addChild(middleGuardrail);
 
-	const leftGuardrailMatrices = translateMatricesAlongNormalAxis(glMatrix, levelMatrices, - ROAD_WIDTH / 2);
-	const leftGuardrail = getGuardrail(gl, glMatrix, textureMap.getTexture("concrete"), leftGuardrailMatrices);
-	road.addChild(leftGuardrail);
+  const rightGuardrailMatrices = translateMatricesAlongNormalAxis(
+    glMatrix,
+    levelMatrices,
+    ROAD_WIDTH / 2,
+  );
+  const rightGuardrail = getGuardrail(
+    gl,
+    glMatrix,
+    textureMap.getTexture("concrete"),
+    rightGuardrailMatrices,
+  );
+  road.addChild(rightGuardrail);
 
-	const streetLights = getLights(gl, glMatrix, textureMap.getTexture("lightGrey"), levelMatrices, amountOfLights);
-	streetLights.forEach(streetLight => road.addChild(streetLight));
-	
-	const columns = getColumns(gl, glMatrix, textureMap.getTexture("concrete"), textureMap.getTexture("concreteWall"), levels, amountOfColumns);
-	columns.forEach(column => road.addChild(column));
+  const leftGuardrailMatrices = translateMatricesAlongNormalAxis(
+    glMatrix,
+    levelMatrices,
+    -ROAD_WIDTH / 2,
+  );
+  const leftGuardrail = getGuardrail(
+    gl,
+    glMatrix,
+    textureMap.getTexture("concrete"),
+    leftGuardrailMatrices,
+  );
+  road.addChild(leftGuardrail);
 
-	return road;
+  const streetLights = getLights(
+    gl,
+    glMatrix,
+    textureMap.getTexture("lightGrey"),
+    levelMatrices,
+    amountOfLights,
+  );
+  streetLights.forEach((streetLight) => road.addChild(streetLight));
+
+  const columns = getColumns(
+    gl,
+    glMatrix,
+    textureMap.getTexture("concrete"),
+    textureMap.getTexture("concreteWall"),
+    levels,
+    amountOfColumns,
+  );
+  columns.forEach((column) => road.addChild(column));
+
+  return road;
 }

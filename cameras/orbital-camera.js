@@ -5,95 +5,95 @@ const MIN_RADIUS = 100;
 const MAX_RADIUS = 1000;
 
 export class OrbitalCamera {
-	constructor(glMatrix) {
-        this.radius = 500;
-        this.alpha = Math.PI / 2;
-        this.beta = Math.PI / 2;
-        this.currentPosition = { x: 0, y: 0 };
-        this.previousPosition = { x: 0, y: 0 };
-		this.isMouseButtonPressed = false;
-		this.center = glMatrix.vec4.fromValues(0,0,0);
-		this.up = glMatrix.vec4.fromValues(0,0,1);
-		this.keysPressed = {
-			plus: false,
-			minus: false,
-		}
+  constructor(glMatrix) {
+    this.radius = 500;
+    this.alpha = Math.PI / 2;
+    this.beta = Math.PI / 2;
+    this.currentPosition = { x: 0, y: 0 };
+    this.previousPosition = { x: 0, y: 0 };
+    this.isMouseButtonPressed = false;
+    this.center = glMatrix.vec4.fromValues(0, 0, 0);
+    this.up = glMatrix.vec4.fromValues(0, 0, 1);
+    this.keysPressed = {
+      plus: false,
+      minus: false,
+    };
+  }
+
+  zoomIn() {
+    this.radius = Math.max(MIN_RADIUS, this.radius - ZOOM_FACTOR);
+  }
+
+  zoomOut() {
+    this.radius = Math.min(MAX_RADIUS, this.radius + ZOOM_FACTOR);
+  }
+
+  handleMouseMove(event) {
+    if (this.isMouseButtonPressed) {
+      this.currentPosition.x = event.clientX || event.pageX;
+      this.currentPosition.y = event.clientY || event.pageY;
     }
+  }
 
-	zoomIn() {
-        this.radius = Math.max(MIN_RADIUS, this.radius - ZOOM_FACTOR);
+  handleMouseWheel(event) {
+    if (event.deltaY > 0) this.zoomOut();
+    else if (event.deltaY < 0) this.zoomIn();
+  }
+
+  handleMouseDown(event) {
+    if (event.button === 0) {
+      this.previousPosition.x = event.clientX || event.pageX;
+      this.previousPosition.y = event.clientY || event.pageY;
+      this.currentPosition.x = this.previousPosition.x;
+      this.currentPosition.y = this.previousPosition.y;
+      this.isMouseButtonPressed = true;
     }
+  }
 
-    zoomOut() {
-        this.radius = Math.min(MAX_RADIUS, this.radius + ZOOM_FACTOR);
+  handleMouseUp(event) {
+    if (event.button === 0) {
+      this.isMouseButtonPressed = false;
     }
+  }
 
-	handleMouseMove(event) {
-		if (this.isMouseButtonPressed) {
-			this.currentPosition.x = event.clientX || event.pageX;
-			this.currentPosition.y = event.clientY || event.pageY;
-		}
-    }
+  handleKeyDown(event) {
+    if (event.key === "=") this.keysPressed.plus = true;
+    else if (event.key === "-") this.keysPressed.minus = true;
+  }
 
-	handleMouseWheel(event) {
-		if (event.deltaY > 0) this.zoomOut();
-		else if (event.deltaY < 0) this.zoomIn();
-	}
+  handleKeyUp(event) {
+    if (event.key === "=") this.keysPressed.plus = false;
+    else if (event.key === "-") this.keysPressed.minus = false;
+  }
 
-	handleMouseDown(event) {
-		if (event.button === 0) {
-			this.previousPosition.x = event.clientX || event.pageX;
-			this.previousPosition.y = event.clientY || event.pageY;
-			this.currentPosition.x = this.previousPosition.x;
-			this.currentPosition.y = this.previousPosition.y;
-			this.isMouseButtonPressed = true;
-		}
-	}
+  getMatrix(glMatrix) {
+    const deltaX = this.currentPosition.x - this.previousPosition.x;
+    const deltaY = this.currentPosition.y - this.previousPosition.y;
 
-	handleMouseUp(event) {
-		if (event.button === 0) {
-			this.isMouseButtonPressed = false;
-		}
-	}
+    this.previousPosition.x = this.currentPosition.x;
+    this.previousPosition.y = this.currentPosition.y;
 
-	handleKeyDown (event) {
-        if (event.key === "=") this.keysPressed.plus = true;
-        else if (event.key === "-") this.keysPressed.minus = true;
-    }
+    this.alpha = this.alpha - deltaX * SPEED_FACTOR;
+    this.beta = this.beta - deltaY * SPEED_FACTOR;
 
-    handleKeyUp (event) {
-        if (event.key === "=") this.keysPressed.plus = false;
-        else if (event.key === "-") this.keysPressed.minus = false;
-    }
+    if (this.beta < 0.01) this.beta = 0.01;
+    if (this.beta > Math.PI / 2) this.beta = Math.PI / 2;
 
-	getMatrix(glMatrix) {
-		const deltaX = this.currentPosition.x - this.previousPosition.x;
-		const deltaY = this.currentPosition.y - this.previousPosition.y;
-		
-		this.previousPosition.x = this.currentPosition.x;
-		this.previousPosition.y = this.currentPosition.y;
+    const origin = glMatrix.vec4.fromValues(
+      this.radius * Math.cos(this.alpha) * Math.sin(this.beta),
+      this.radius * Math.sin(this.alpha) * Math.sin(this.beta),
+      this.radius * Math.cos(this.beta),
+    );
 
-		this.alpha = this.alpha - deltaX * SPEED_FACTOR;
-		this.beta = this.beta - deltaY * SPEED_FACTOR;
+    const viewMatrix = glMatrix.mat4.create();
+    glMatrix.mat4.lookAt(viewMatrix, origin, this.center, this.up);
 
-		if (this.beta < 0.01) this.beta = 0.01;
-		if (this.beta > Math.PI / 2) this.beta = Math.PI / 2;
+    return viewMatrix;
+  }
 
-		const origin = glMatrix.vec4.fromValues(
-			this.radius * Math.cos(this.alpha) * Math.sin(this.beta),
-			this.radius * Math.sin(this.alpha) * Math.sin(this.beta),
-			this.radius * Math.cos(this.beta),
-		);
-		
-		const viewMatrix = glMatrix.mat4.create();
-		glMatrix.mat4.lookAt(viewMatrix, origin, this.center, this.up);
-
-		return viewMatrix;
-	}
-
-	animate(glMatrix) {
-		if (this.keysPressed.plus) this.zoomIn();
-		else if (this.keysPressed.minus) this.zoomOut();
-		return this.getMatrix(glMatrix);
-	}
+  animate(glMatrix) {
+    if (this.keysPressed.plus) this.zoomIn();
+    else if (this.keysPressed.minus) this.zoomOut();
+    return this.getMatrix(glMatrix);
+  }
 }

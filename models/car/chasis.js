@@ -13,67 +13,107 @@ import { Model } from "../model.js";
 import { generateSweepSurface } from "../../surface-generator.js";
 
 export function getChasis(gl, glMatrix, texture) {
-	let level0Matrix = glMatrix.mat4.fromValues(
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		0,0,0,1
-	);
-	
-	let level1MatrixBase = glMatrix.mat4.fromValues(
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		0,0,BASE_DEPTH,1
-	);
+  let level0Matrix = glMatrix.mat4.fromValues(
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+  );
 
-	const baseTrapezoid = new Trapezoid(BASE_BASE_WIDTH, BASE_TOP_WIDTH, BASE_HEIGHT);
-	const carBaseBuffers = generateSweepSurface(
-		gl,
-		glMatrix,
-		baseTrapezoid,
-		[level0Matrix, level1MatrixBase],
-		true,
-		true,
-	);
-	const carBase = new Model(
-		gl.TRIANGLE_STRIP,
-		carBaseBuffers.glPositionBuffer,
-		carBaseBuffers.glNormalBuffer,
-		carBaseBuffers.glIndexBuffer,
-		carBaseBuffers.glUVBuffer,
-		texture,
-	);
+  let level1MatrixBase = glMatrix.mat4.fromValues(
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    BASE_DEPTH,
+    1,
+  );
 
-	let level1MatrixTop = glMatrix.mat4.fromValues(
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		0,0,TOP_DEPTH,1
-	);
+  const baseTrapezoid = new Trapezoid(
+    BASE_BASE_WIDTH,
+    BASE_TOP_WIDTH,
+    BASE_HEIGHT,
+  );
+  const carBaseBuffers = generateSweepSurface(
+    gl,
+    glMatrix,
+    baseTrapezoid,
+    [level0Matrix, level1MatrixBase],
+    true,
+    true,
+  );
+  const carBase = new Model(
+    gl.TRIANGLE_STRIP,
+    carBaseBuffers.glPositionBuffer,
+    carBaseBuffers.glNormalBuffer,
+    carBaseBuffers.glIndexBuffer,
+    carBaseBuffers.glUVBuffer,
+    texture,
+  );
 
-	const topTrapezoid = new Trapezoid(TOP_BASE_WIDTH, TOP_TOP_WIDTH, TOP_HEIGHT);
-	const carTopBuffers = generateSweepSurface(
-		gl,
-		glMatrix,
-		topTrapezoid,
-		[level0Matrix, level1MatrixTop],
-		true,
-		true,
-	);
-	const carTop = new Model(
-		gl.TRIANGLE_STRIP,
-		carTopBuffers.glPositionBuffer,
-		carTopBuffers.glNormalBuffer,
-		carTopBuffers.glIndexBuffer,
-		carTopBuffers.glUVBuffer,
-		texture,
-	);
+  let level1MatrixTop = glMatrix.mat4.fromValues(
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    TOP_DEPTH,
+    1,
+  );
 
-	carTop.translationVector = [0, BASE_HEIGHT / 2 + TOP_HEIGHT / 2, 0];
+  const topTrapezoid = new Trapezoid(TOP_BASE_WIDTH, TOP_TOP_WIDTH, TOP_HEIGHT);
+  const carTopBuffers = generateSweepSurface(
+    gl,
+    glMatrix,
+    topTrapezoid,
+    [level0Matrix, level1MatrixTop],
+    true,
+    true,
+  );
+  const carTop = new Model(
+    gl.TRIANGLE_STRIP,
+    carTopBuffers.glPositionBuffer,
+    carTopBuffers.glNormalBuffer,
+    carTopBuffers.glIndexBuffer,
+    carTopBuffers.glUVBuffer,
+    texture,
+  );
 
-	const carChasis = new Model();
-	carChasis.addChild(carBase);
-	carChasis.addChild(carTop);
-	return carChasis;
+  carTop.translationVector = [0, BASE_HEIGHT / 2 + TOP_HEIGHT / 2, 0];
+
+  const carChasis = new Model();
+  carChasis.addChild(carBase);
+  carChasis.addChild(carTop);
+  return carChasis;
 }
