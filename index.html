@@ -3,16 +3,31 @@
     <head>
         <title></title>        
         <style>
-            body{ background-color: grey; }
-            canvas{ background-color: white; }
-			textarea{ background-color: black; }
-            #container3d{ position: relative; }
+            html, body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                height: 100%;
+            }
+            #container3d {
+                position: relative;
+                width: 100%;
+                height: 100%;
+            }
+            canvas {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+            textarea {
+                background-color: black;
+            }
         </style>
         <link rel="stylesheet" type="text/css" href="curve-editor/curve-editor.css">
     </head>
     <body>
 		<div id="container3d"> 
-            <canvas id="my-canvas" width="1000" height="700">
+            <canvas id="my-canvas">
             	Your browser does not support the HTML5 canvas element.
     		</canvas>
             <div id="editor-container"></div>
@@ -158,8 +173,12 @@
             let rotate_angle = -1.57078;
             
             let canvas = document.getElementById("my-canvas");
-            canvas.width = document.body.clientWidth;
-            canvas.height = document.body.clientHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+            });
          
             function initWebGL(){
                 try{
@@ -405,6 +424,13 @@
 
             function loadTextures() {
                 textureMap = new TextureMap(gl);
+            }
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                mat4.perspective(projMatrix, 45, canvas.width / canvas.height, 0.1, null);
             }
 
             function createScene() {

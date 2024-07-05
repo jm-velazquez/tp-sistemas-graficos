@@ -12,6 +12,7 @@
 
 #editor-container canvas {
     border: 1px solid #000;
+    background-color: #000;
     position: relative;
 }
 
@@ -19,9 +20,11 @@
     display: flex;
     flex-direction: column;
     padding: 20px;
-    background-color: #f0f0f0;
+    background-color: #111;
 }
 
 #editor-container button {
     margin-bottom: 10px;
+    background-color: #333;
+    color: #f0f0f0;
 }

@@ -7,11 +7,13 @@ const MIN_RADIUS = 100;
 const MAX_RADIUS = 1000;
 
 export class OrbitalCamera {
-	radius = 500;
-	alpha = Math.PI / 2;
-	beta = Math.PI / 2;
-	currentPosition = {x: 0, y: 0};
-	previousPosition = {x: 0, y: 0};
+	constructor() {
+        this.radius = 500;
+        this.alpha = Math.PI / 2;
+        this.beta = Math.PI / 2;
+        this.currentPosition = { x: 0, y: 0 };
+        this.previousPosition = { x: 0, y: 0 };
+    }
 
 	setCurrentPosition(x, y) {
 		this.currentPosition.x = x;
@@ -19,16 +21,12 @@ export class OrbitalCamera {
 	}
 
 	zoomIn() {
-		this.radius -= ZOOM_FACTOR;
-		if (this.radius < MIN_RADIUS) this.radius = MIN_RADIUS;
-		else if (this.radius > MAX_RADIUS) this.radius = MAX_RADIUS;
-	}
+        this.radius = Math.max(MIN_RADIUS, this.radius - ZOOM_FACTOR);
+    }
 
-	zoomOut() {
-		this.radius += ZOOM_FACTOR;
-		if (this.radius < MIN_RADIUS) this.radius = MIN_RADIUS;
-		else if (this.radius > MAX_RADIUS) this.radius = MAX_RADIUS;
-	}
+    zoomOut() {
+        this.radius = Math.min(MAX_RADIUS, this.radius + ZOOM_FACTOR);
+    }
 
 	getMatrix(glMatrix) {
 		const deltaX = this.currentPosition.x - this.previousPosition.x;
