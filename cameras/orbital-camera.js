@@ -13,6 +13,7 @@ export class OrbitalCamera {
         this.beta = Math.PI / 2;
         this.currentPosition = { x: 0, y: 0 };
         this.previousPosition = { x: 0, y: 0 };
+		this.isMouseButtonPressed = false;
     }
 
 	setCurrentPosition(x, y) {
@@ -27,6 +28,34 @@ export class OrbitalCamera {
     zoomOut() {
         this.radius = Math.min(MAX_RADIUS, this.radius + ZOOM_FACTOR);
     }
+
+	handleMouseMove(event) {
+		if (this.isMouseButtonPressed) {
+			this.currentPosition.x = event.clientX || event.pageX;
+			this.currentPosition.y = event.clientY || event.pageY;
+		}
+    }
+
+	handleMouseWheel(event) {
+		if (event.deltaY > 0) this.zoomOut();
+		else if (event.deltaY < 0) this.zoomIn();
+	}
+
+	handleMouseDown(event) {
+		if (event.button === 0) {
+			this.previousPosition.x = event.clientX || event.pageX;
+			this.previousPosition.y = event.clientY || event.pageY;
+			this.currentPosition.x = this.previousPosition.x;
+			this.currentPosition.y = this.previousPosition.y;
+			this.isMouseButtonPressed = true;
+		}
+	}
+
+	handleMouseUp(event) {
+		if (event.button === 0) {
+			this.isMouseButtonPressed = false;
+		}
+	}
 
 	getMatrix(glMatrix) {
 		const deltaX = this.currentPosition.x - this.previousPosition.x;

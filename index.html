@@ -306,14 +306,9 @@
             let cameraMode = "orbital";
 
             canvas.addEventListener("mousemove", (e) => {
-                if (!keysPressed.leftClick) return;
-                if (cameraMode === "orbital") {
-                    orbitalCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
-                } else if (cameraMode === "street") {
-                    streetCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
-                } else {
-                    highwayCamera.setCurrentPosition(e.clientX || e.pageX, e.clientY || e.pageY);
-                }    
+                orbitalCamera.handleMouseMove(e);
+                streetCamera.handleMouseMove(e);
+                highwayCamera.handleMouseMove(e); 
             });
 
             window.addEventListener("keydown", (e) => {
@@ -348,15 +343,15 @@
             });
 
             window.addEventListener("mousedown", (e) => {
-                if (e.button === 0) {
-                    keysPressed.leftClick = true;
-                }
+                orbitalCamera.handleMouseDown(e);
+                streetCamera.handleMouseDown(e);
+                highwayCamera.handleMouseDown(e);
             });
 
             window.addEventListener("mouseup", (e) => {
-                if (e.button === 0) {
-                    keysPressed.leftClick = false;
-                }
+                orbitalCamera.handleMouseUp(e);
+                streetCamera.handleMouseUp(e);
+                highwayCamera.handleMouseUp(e);
             });
 
 

@@ -17,6 +17,7 @@ export class FirstPersonCamera {
             startingPosition[1],
             startingPosition[2] + PLAYER_HEIGHT);
         this.lookAround(glMatrix, 0, 0);
+        this.isMouseButtonPressed = false;
     }
 
     getMatrix(glMatrix) {
@@ -94,8 +95,26 @@ export class FirstPersonCamera {
         this.targetPosition = newTargetPosition;
     }
 
-	setCurrentPosition(x, y) {
-		this.currentPosition.x = x;
-		this.currentPosition.y = y;
+	handleMouseMove(event) {
+        if (this.isMouseButtonPressed) {
+            this.currentPosition.x = event.clientX || event.pageX;
+		    this.currentPosition.y = event.clientY || event.pageY;
+        }
+	}
+
+    handleMouseDown(event) {
+		if (event.button === 0) {
+			this.isMouseButtonPressed = true;
+            this.previousPosition.x = event.clientX || event.pageX;
+			this.previousPosition.y = event.clientY || event.pageY;
+			this.currentPosition.x = this.previousPosition.x;
+			this.currentPosition.y = this.previousPosition.y;
+		}
+	}
+
+	handleMouseUp(event) {
+		if (event.button === 0) {
+			this.isMouseButtonPressed = false;
+		}
 	}
 }
