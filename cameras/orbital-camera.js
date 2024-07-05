@@ -1,25 +1,20 @@
 const SPEED_FACTOR = 0.005;
 const ZOOM_FACTOR = 25;
-const CENTER = glMatrix.vec4.fromValues(0,0,0);
-const UP = glMatrix.vec4.fromValues(0,0,1);
 
 const MIN_RADIUS = 100;
 const MAX_RADIUS = 1000;
 
 export class OrbitalCamera {
-	constructor() {
+	constructor(glMatrix) {
         this.radius = 500;
         this.alpha = Math.PI / 2;
         this.beta = Math.PI / 2;
         this.currentPosition = { x: 0, y: 0 };
         this.previousPosition = { x: 0, y: 0 };
 		this.isMouseButtonPressed = false;
+		this.center = glMatrix.vec4.fromValues(0,0,0);
+		this.up = glMatrix.vec4.fromValues(0,0,1);
     }
-
-	setCurrentPosition(x, y) {
-		this.currentPosition.x = x;
-		this.currentPosition.y = y;
-	}
 
 	zoomIn() {
         this.radius = Math.max(MIN_RADIUS, this.radius - ZOOM_FACTOR);
@@ -77,7 +72,7 @@ export class OrbitalCamera {
 		);
 		
 		const viewMatrix = glMatrix.mat4.create();
-		glMatrix.mat4.lookAt(viewMatrix, origin, CENTER, UP);
+		glMatrix.mat4.lookAt(viewMatrix, origin, this.center, this.up);
 
 		return viewMatrix;
 	}
