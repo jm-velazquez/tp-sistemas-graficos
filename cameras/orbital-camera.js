@@ -14,6 +14,10 @@ export class OrbitalCamera {
 		this.isMouseButtonPressed = false;
 		this.center = glMatrix.vec4.fromValues(0,0,0);
 		this.up = glMatrix.vec4.fromValues(0,0,1);
+		this.keysPressed = {
+			plus: false,
+			minus: false,
+		}
     }
 
 	zoomIn() {
@@ -52,6 +56,16 @@ export class OrbitalCamera {
 		}
 	}
 
+	handleKeyDown (event) {
+        if (event.key === "=") this.keysPressed.plus = true;
+        else if (event.key === "-") this.keysPressed.minus = true;
+    }
+
+    handleKeyUp (event) {
+        if (event.key === "=") this.keysPressed.plus = false;
+        else if (event.key === "-") this.keysPressed.minus = false;
+    }
+
 	getMatrix(glMatrix) {
 		const deltaX = this.currentPosition.x - this.previousPosition.x;
 		const deltaY = this.currentPosition.y - this.previousPosition.y;
@@ -75,5 +89,11 @@ export class OrbitalCamera {
 		glMatrix.mat4.lookAt(viewMatrix, origin, this.center, this.up);
 
 		return viewMatrix;
+	}
+
+	animate(glMatrix) {
+		if (this.keysPressed.plus) this.zoomIn();
+		else if (this.keysPressed.minus) this.zoomOut();
+		return this.getMatrix(glMatrix);
 	}
 }

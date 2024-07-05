@@ -18,6 +18,13 @@ export class FirstPersonCamera {
             startingPosition[2] + PLAYER_HEIGHT);
         this.lookAround(glMatrix, 0, 0);
         this.isMouseButtonPressed = false;
+        this.keysPressed = {
+            w: false,
+            a: false,
+            s: false,
+            d: false,
+            shift: false,
+        }
     }
 
     getMatrix(glMatrix) {
@@ -117,4 +124,31 @@ export class FirstPersonCamera {
 			this.isMouseButtonPressed = false;
 		}
 	}
+
+    handleKeyDown(event) {
+        if (event.key === "w") this.keysPressed.w = true;
+        else if (event.key === "s") this.keysPressed.s = true;
+        else if (event.key === "a") this.keysPressed.a = true;
+        else if (event.key === "d") this.keysPressed.d = true;
+        if (event.shiftKey) this.keysPressed.shift = true;
+    }
+
+    handleKeyUp = (event) => {
+        if (event.key === "w") this.keysPressed.w = false;
+        else if (event.key === "s") this.keysPressed.s = false;
+        else if (event.key === "a") this.keysPressed.a = false;
+        else if (event.key === "d") this.keysPressed.d = false;
+        if (!event.shiftKey) this.keysPressed.shift = false;
+    }
+
+    handleMouseWheel(_) {}
+
+    animate(glMatrix) {
+        const running = this.keysPressed.shift;
+        if (this.keysPressed.w) this.moveForward(glMatrix, running);
+        if (this.keysPressed.a) this.moveLeft(glMatrix, running);
+        if (this.keysPressed.s) this.moveBackwards(glMatrix, running);
+        if (this.keysPressed.d) this.moveRight(glMatrix, running);
+        return this.getMatrix(glMatrix); 
+    }
 }
