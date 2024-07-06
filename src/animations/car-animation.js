@@ -2,8 +2,8 @@ import { vec3 } from 'gl-matrix'
 import {
     translateMatricesAlongNormalAxis,
     getPositionsFromLevelMatrices,
-} from '../curves/level-matrix-generator.js'
-import { LUT } from '../curves/look-up-table.js'
+} from '../curves/level-matrix-generator'
+import { LUT } from '../curves/look-up-table.ts'
 
 export class CarAnimation {
     levelMatrices

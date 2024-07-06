@@ -1,11 +1,14 @@
 {
     "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "noImplicitAny": true,
-        "module": "es6",
-        "target": "es5",
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "module": "es2015",
+        "target": "ES2017",
         "allowJs": true,
         "outDir": "./dist"
     },
-    "files": ["/*.ts"]
+    "include": ["src/**/*.ts", "src/main.js"],
+    "exclude": ["node_modules", "**/*.spec.ts"]
 }

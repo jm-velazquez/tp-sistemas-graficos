@@ -1,4 +1,4 @@
-import { reverseLevelMatrices } from '../curves/level-matrix-generator.js'
+import { reverseLevelMatrices } from '../curves/level-matrix-generator'
 import { CarAnimation } from './car-animation.js'
 
 const LANE_OFFSETS = [21, 12, 4, 4, 12, 21]
