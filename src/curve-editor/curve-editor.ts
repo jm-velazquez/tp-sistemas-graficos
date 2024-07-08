@@ -107,6 +107,16 @@ export class CurveEditor {
                 this.currentMovingNode.style.top = y + 'px'
             }
         })
+
+        this.setControlPoints([
+            [0, 0],
+            [300, 50],
+            [50, 300],
+            [300, 300],
+        ])
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'h') this.toggleVisibility()
+        })
     }
 
     computeCurve() {
@@ -142,8 +152,7 @@ export class CurveEditor {
     }
 
     setControlPoints(points: number[][]) {
-        if (!Array.isArray(points)) throw 'points no es un array'
-        points.forEach((p, i) => {
+        points.forEach((p) => {
             this.addNode(p[0], p[1])
         })
         this.computeCurve()

@@ -34,7 +34,7 @@ export class LUT {
             }
             lastDistance = currentDistance
         }
-        throw 'LUT: distance out of bounds'
+        throw Error(`LUT: interpolated point distance out of bounds: ${distance}`)
     }
 
     getClosestPointAndIndex(distance: number): [number[], number] {
@@ -48,7 +48,7 @@ export class LUT {
             index += 1
             lastDistance = currentDistance
         }
-        throw 'Distance out of bounds'
+        throw Error(`LUT: closest point distance out of bounds: ${distance}`)
     }
 
     getTotalDistance() {

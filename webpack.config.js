@@ -1,25 +1,31 @@
-const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const WorkboxWebpackPlugin = require('workbox-webpack-plugin')
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin'); // Add this line
 
-const isProduction = process.env.NODE_ENV == 'production'
+const isProduction = process.env.NODE_ENV == 'production';
 
 const config = {
     entry: './src/main.ts',
     output: {
         path: path.resolve(__dirname, 'dist'),
-        publicPath: '/', // Ensure this matches your dev server configuration
+        publicPath: '/tp-sistemas-graficos/',
     },
     devServer: {
         open: true,
         host: 'localhost',
         static: {
-            directory: path.join(__dirname, 'dist'), // Serve from 'dist' directory
+            directory: path.join(__dirname, 'dist'),
         },
     },
     plugins: [
         new HtmlWebpackPlugin({
             template: './src/index.html', // Ensure this matches your project structure
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: 'src/resources', to: 'resources' }, // Add this line
+            ],
         }),
     ],
     module: {
@@ -49,14 +55,14 @@ const config = {
     resolve: {
         extensions: ['.tsx', '.ts', '.jsx', '.js', '...'],
     },
-}
+};
 
 module.exports = () => {
     if (isProduction) {
-        config.mode = 'production'
-        config.plugins.push(new WorkboxWebpackPlugin.GenerateSW())
+        config.mode = 'production';
+        config.plugins.push(new WorkboxWebpackPlugin.GenerateSW());
     } else {
-        config.mode = 'development'
+        config.mode = 'development';
     }
-    return config
-}
+    return config;
+};

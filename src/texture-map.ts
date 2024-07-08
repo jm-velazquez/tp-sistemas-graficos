@@ -97,24 +97,24 @@ export class TextureMap {
 
     constructor(gl: WebGLRenderingContext) {
         this.map = new Map()
-        this.map.set('buildings', loadTexture(gl, '/resources/buildings.jpg'))
-        this.map.set('sidewalk', loadTexture(gl, '/resources/sidewalk2.jpg'))
+        this.map.set('buildings', loadTexture(gl, '/tp-sistemas-graficos/resources/buildings.jpg'))
+        this.map.set('sidewalk', loadTexture(gl, '/tp-sistemas-graficos/resources/sidewalk2.jpg'))
         this.map.set(
             'sidewalkNormal',
-            loadTexture(gl, '/resources/sidewalk2_normal.jpg')
+            loadTexture(gl, '/tp-sistemas-graficos/resources/sidewalk2_normal.jpg')
         )
         this.map.set(
             'highwayRoad',
-            loadTexture(gl, '/resources/highway_road_wide.jpg')
+            loadTexture(gl, '/tp-sistemas-graficos/resources/highway_road_wide.jpg')
         )
-        this.map.set('grass', loadTexture(gl, '/resources/grass2.jpg'))
-        this.map.set('concrete', loadTexture(gl, '/resources/concrete.jpg'))
+        this.map.set('grass', loadTexture(gl, '/tp-sistemas-graficos/resources/grass2.jpg'))
+        this.map.set('concrete', loadTexture(gl, '/tp-sistemas-graficos/resources/concrete.jpg'))
         this.map.set(
             'concreteWall',
-            loadTexture(gl, '/resources/concrete_wall.jpg')
+            loadTexture(gl, '/tp-sistemas-graficos/resources/concrete_wall.jpg')
         )
-        this.map.set('skybox', loadTexture(gl, '/resources/skybox.png'))
-        this.map.set('street', loadTexture(gl, '/resources/street.jpg'))
+        this.map.set('skybox', loadTexture(gl, '/tp-sistemas-graficos/resources/skybox.png'))
+        this.map.set('street', loadTexture(gl, '/tp-sistemas-graficos/resources/street.jpg'))
         this.map.set('grey', loadMonocromaticTexture(gl, 33, 33, 33))
         this.map.set('lightGrey', loadMonocromaticTexture(gl, 189, 189, 189))
         this.map.set('red', loadMonocromaticTexture(gl, 183, 28, 28))
