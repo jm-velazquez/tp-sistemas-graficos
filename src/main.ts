@@ -19,20 +19,9 @@ import { generateLevelMatrices } from './curves/level-matrix-generator'
 import { CameraManager } from './cameras/camera-manager'
 import { initShaders } from './gl/init-shaders'
 import { BuildingVariation } from './models/block/building'
+import { Matrices } from './matrices'
 
 const CURVE_EDITOR_SIDE = 300
-
-class Matrices {
-    public modelMatrix: mat4
-    public viewMatrix: mat4
-    public projMatrix: mat4
-
-    constructor() {
-        this.modelMatrix = mat4.create()
-        this.viewMatrix = mat4.create()
-        this.projMatrix = mat4.create()
-    }
-}
 
 function main() {
     const editor = new CurveEditor('editor-container', {
@@ -42,24 +31,13 @@ function main() {
 
     function initWebGL() {
         try {
-            let canvas: HTMLCanvasElement = document.getElementById('my-canvas') as HTMLCanvasElement
-            canvas.width = window.innerWidth
-            canvas.height = window.innerHeight
-            let gl: WebGLRenderingContext = canvas.getContext('webgl')!
-            const matrices = setupWebGL(gl, canvas)
-            const resizeCanvas = (gl: WebGLRenderingContext, matrices: Matrices) => {
-                canvas.width = window.innerWidth
-                canvas.height = window.innerHeight
-                gl.viewport(0, 0, canvas.width, canvas.height)
-                mat4.perspective(
-                    matrices.projMatrix,
-                    45,
-                    canvas.width / canvas.height,
-                    0.1,
-                    Infinity
-                )
-            }
-            window.addEventListener('resize', () => resizeCanvas(gl, matrices))
+            let canvas = getCanvas()
+            let gl = setUpContext(canvas)
+        
+            let matrices = new Matrices();        
+            matrices.setUpPerspectiveByDimensions(canvas.width, canvas.height)
+            
+            window.addEventListener('resize', () => resizeCanvas(gl, canvas, matrices))
             
             let glProgram = initShaders(gl)
             generateSceneParameters()
@@ -68,31 +46,6 @@ function main() {
         } catch (e) {
             throw Error(`Error: Your browser does not appear to support WebGL: ${e}`)
         }
-    }
-    
-    function setupWebGL(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) {
-        gl.enable(gl.DEPTH_TEST)
-        //set the clear color
-        gl.clearColor(0.1, 0.1, 0.2, 1.0)
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-    
-        gl.viewport(0, 0, canvas.width, canvas.height)
-    
-        let matrices = new Matrices();
-
-        // Matrix de Proyeccion Perspectiva
-    
-        mat4.perspective(
-            matrices.projMatrix,
-            45,
-            canvas.width / canvas.height,
-            0.1,
-            Infinity
-        )
-    
-        mat4.identity(matrices.modelMatrix)
-
-        return matrices
     }
     
     function tick(gl: WebGLRenderingContext, glProgram: WebGLProgram, matrices: Matrices) {
@@ -283,5 +236,28 @@ function main() {
     window.onload = initWebGL
 }
 
+function resizeCanvas(gl: WebGLRenderingContext, canvas: HTMLCanvasElement, matrices: Matrices) {
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    matrices.setUpPerspectiveByDimensions(canvas.width, canvas.height)
+}
+
+function setUpContext(canvas: HTMLCanvasElement) {
+    let gl: WebGLRenderingContext = canvas.getContext('webgl')!
+    gl.enable(gl.DEPTH_TEST)
+    gl.clearColor(0.1, 0.1, 0.2, 1.0)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    return gl
+}
+
+function getCanvas() {
+    let canvas: HTMLCanvasElement = document.getElementById('my-canvas') as HTMLCanvasElement
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    return canvas
+}
 
 main()
