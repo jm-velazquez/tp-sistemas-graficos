@@ -1,6 +1,12 @@
 import { CarAnimations } from "./animations/car-animations"
+import { CurveEditor } from "./curve-editor/curve-editor"
+import { Bezier2 } from "./curves/bezier"
+import { generateLevelMatrices } from "./curves/level-matrix-generator"
+import { getBuildingBlockHeightsPerBlock, getBuildingVariationsPerBlock, getEmptyGrids } from "./models/block/block-grid"
 import { BuildingVariation } from "./models/block/building"
 import { availableTexture } from "./texture-map"
+
+const CURVE_EDITOR_SIDE = 300
 
 interface AmbientLight {
     topColor: number[]
@@ -68,5 +74,35 @@ export class SceneParameters {
                 strength: 1,
             }
         }
+    }
+
+    generate(editor: CurveEditor) {
+        this.buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock()
+        this.buildingVariationsPerBlock = getBuildingVariationsPerBlock()
+        let controlPoints = editor.getControlPoints()
+        controlPoints.unshift(controlPoints[0])
+        controlPoints.push(controlPoints[controlPoints.length - 1])
+        controlPoints = controlPoints.map((point) => [
+            (point[0] - CURVE_EDITOR_SIDE / 2) * (560 / 300),
+            (point[1] - CURVE_EDITOR_SIDE / 2) * (560 / 300),
+        ])
+        const bezierCurve = new Bezier2()
+        bezierCurve.setControlPoints(controlPoints)
+        this.highwayLevels = bezierCurve.getPolygon()
+        this.emptyGrids = getEmptyGrids(this.highwayLevels)
+
+        this.lightParameters.pointLight.position1 = [
+            this.highwayLevels[0][0],
+            -this.highwayLevels[0][1],
+            50,
+        ]
+        this.lightParameters.pointLight.position2 = [
+            this.highwayLevels[this.highwayLevels.length - 1][0],
+            -this.highwayLevels[this.highwayLevels.length - 1][0],
+            50,
+        ]
+
+        const levelMatrices = generateLevelMatrices(this.highwayLevels)
+        this.carAnimations = new CarAnimations(levelMatrices)
     }
 }

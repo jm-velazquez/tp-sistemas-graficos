@@ -2,17 +2,11 @@ import { getCar } from './models/car/car'
 import { getHighway } from './models/highway/highway'
 import {
     getBlockGrid,
-    getBuildingBlockHeightsPerBlock,
-    getBuildingVariationsPerBlock,
-    getEmptyGrids,
 } from './models/block/block-grid'
 import { getSkybox } from './models/skybox'
 import { CurveEditor } from './curve-editor/curve-editor'
-import { Bezier2 } from './curves/bezier'
-import { CarAnimations } from './animations/car-animations.js'
 import { TextureMap } from './texture-map'
 import { getStreetGrid } from './models/street/street-grid'
-import { generateLevelMatrices } from './curves/level-matrix-generator'
 import { CameraManager } from './cameras/camera-manager'
 import { initShaders } from './gl/init-shaders'
 import { Matrices } from './matrices'
@@ -43,7 +37,7 @@ function initWebGL() {
             lights: INITIAL_LIGHTS_AMOUNT,
             columns: INITIAL_COLUMNS_AMOUNT,
             generate: () => {
-                generateSceneParameters(sceneParameters, editor)
+                sceneParameters.generate(editor)
             },
         }
         
@@ -54,9 +48,9 @@ function initWebGL() {
         
         window.addEventListener('resize', () => resizeCanvas(gl, canvas, matrices))
         const cameraManager = new CameraManager()
-
+	
         let glProgram = initShaders(gl)
-        generateSceneParameters(sceneParameters, editor)
+        sceneParameters.generate(editor)
         const textureMap = new TextureMap(gl)
         tick(gl, glProgram, matrices, app, sceneParameters, cameraManager, textureMap)
     } catch (e) {
@@ -71,35 +65,6 @@ function tick(gl: WebGLRenderingContext, glProgram: WebGLProgram, matrices: Matr
     animate(matrices, cameraManager)
 }
 
-function generateSceneParameters(params: SceneParameters, editor: CurveEditor) {
-    params.buildingHeightsPerBlock = getBuildingBlockHeightsPerBlock()
-    params.buildingVariationsPerBlock = getBuildingVariationsPerBlock()
-    let controlPoints = editor.getControlPoints()
-    controlPoints.unshift(controlPoints[0])
-    controlPoints.push(controlPoints[controlPoints.length - 1])
-    controlPoints = controlPoints.map((point) => [
-        (point[0] - CURVE_EDITOR_SIDE / 2) * (560 / 300),
-        (point[1] - CURVE_EDITOR_SIDE / 2) * (560 / 300),
-    ])
-    const bezierCurve = new Bezier2()
-    bezierCurve.setControlPoints(controlPoints)
-    params.highwayLevels = bezierCurve.getPolygon()
-    params.emptyGrids = getEmptyGrids(params.highwayLevels)
-
-    params.lightParameters.pointLight.position1 = [
-        params.highwayLevels[0][0],
-        -params.highwayLevels[0][1],
-        50,
-    ]
-    params.lightParameters.pointLight.position2 = [
-        params.highwayLevels[params.highwayLevels.length - 1][0],
-        -params.highwayLevels[params.highwayLevels.length - 1][0],
-        50,
-    ]
-
-    const levelMatrices = generateLevelMatrices(params.highwayLevels)
-    params.carAnimations = new CarAnimations(levelMatrices)
-}
 
 function createScene(gl: WebGLRenderingContext, glProgram: WebGLProgram, matrices: Matrices, amountOfLights: number, amountOfColumns: number, params: SceneParameters, textureMap: TextureMap) {
     const blockGrid = getBlockGrid(
