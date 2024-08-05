@@ -10,7 +10,7 @@ import { getStreetGrid } from './models/street/street-grid'
 import { CameraManager } from './cameras/camera-manager'
 import { initShaders } from './gl/init-shaders'
 import { Matrices } from './matrices'
-import { AppParameters, setGUI } from './gui'
+import { AppParameters } from './gui'
 import { SceneParameters } from './scene-parameters'
 
 const CURVE_EDITOR_SIDE = 300
@@ -32,16 +32,7 @@ function initWebGL() {
             width: CURVE_EDITOR_SIDE,
             height: CURVE_EDITOR_SIDE,
         })
-
-        let app: AppParameters = {
-            lights: INITIAL_LIGHTS_AMOUNT,
-            columns: INITIAL_COLUMNS_AMOUNT,
-            generate: () => {
-                sceneParameters.generate(editor)
-            },
-        }
-        
-        setGUI(app)
+        let app = new AppParameters(() => sceneParameters.generate(editor), INITIAL_LIGHTS_AMOUNT, INITIAL_COLUMNS_AMOUNT) 
 
         let matrices = new Matrices();        
         matrices.setUpPerspectiveByDimensions(canvas.width, canvas.height)
