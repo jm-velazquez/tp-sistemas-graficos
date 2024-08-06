@@ -1,4 +1,5 @@
 import { mat4, vec3, vec4 } from 'gl-matrix'
+import { LightParameters } from '../scene-parameters'
 
 export class Model {
     positionBuffer: WebGLBuffer | null
@@ -64,10 +65,10 @@ export class Model {
         parentMatrix: mat4,
         viewMatrix: mat4,
         projMatrix: mat4,
-        lightParameters: any
+        lightParameters: LightParameters, 
     ) {
         this.updateModelMatrix()
-        let matrix = mat4.create()
+        const matrix = mat4.create()
         mat4.multiply(matrix, parentMatrix, this.modelMatrix)
 
         if (
@@ -76,23 +77,23 @@ export class Model {
             this.normalBuffer &&
             this.indexBuffer
         ) {
-            let normalMatrix = mat4.clone(matrix)
+            const normalMatrix = mat4.clone(matrix)
             mat4.invert(normalMatrix, normalMatrix)
             mat4.transpose(normalMatrix, normalMatrix)
 
-            var modelMatrixUniform = gl.getUniformLocation(
+            const modelMatrixUniform = gl.getUniformLocation(
                 glProgram,
                 'modelMatrix'
             )
-            var viewMatrixUniform = gl.getUniformLocation(
+            const viewMatrixUniform = gl.getUniformLocation(
                 glProgram,
                 'viewMatrix'
             )
-            var projMatrixUniform = gl.getUniformLocation(
+            const projMatrixUniform = gl.getUniformLocation(
                 glProgram,
                 'projMatrix'
             )
-            var normalMatrixUniform = gl.getUniformLocation(
+            const normalMatrixUniform = gl.getUniformLocation(
                 glProgram,
                 'normalMatrix'
             )
@@ -103,7 +104,7 @@ export class Model {
             gl.uniformMatrix4fv(normalMatrixUniform, false, normalMatrix)
 
             // Buffers
-            let vertexPositionAttribute = gl.getAttribLocation(
+            const vertexPositionAttribute = gl.getAttribLocation(
                 glProgram,
                 'aVertexPosition'
             )
@@ -118,7 +119,7 @@ export class Model {
                 0
             )
 
-            let vertexNormalAttribute = gl.getAttribLocation(
+            const vertexNormalAttribute = gl.getAttribLocation(
                 glProgram,
                 'aVertexNormal'
             )
@@ -133,7 +134,7 @@ export class Model {
                 0
             )
 
-            let uvCoordsAttribute = gl.getAttribLocation(
+            const uvCoordsAttribute = gl.getAttribLocation(
                 glProgram,
                 'aTextureCoord'
             )
@@ -146,7 +147,7 @@ export class Model {
             gl.uniform1i(gl.getUniformLocation(glProgram, 'uSampler'), 0)
 
             // For skybox
-            let affectedByLightingAttribute = gl.getUniformLocation(
+            const affectedByLightingAttribute = gl.getUniformLocation(
                 glProgram,
                 'affectedByLighting'
             )
@@ -247,13 +248,7 @@ export class Model {
                 light2WorldPositionAttribute,
                 lightParameters.pointLight.position2
             )
-
-            // Normal map
-            let usesNormalMapAttribute = gl.getUniformLocation(
-                glProgram,
-                'usesNormalMap'
-            )
-
+            
             // Index buffer
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer)
 

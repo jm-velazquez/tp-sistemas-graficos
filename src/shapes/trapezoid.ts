@@ -1,4 +1,4 @@
-import { mat4, vec4 } from 'gl-matrix'
+import { mat4, vec2, vec4 } from 'gl-matrix'
 
 export class Trapezoid {
     base: number
@@ -13,7 +13,7 @@ export class Trapezoid {
     getArrays() {
         const positionArray: vec4[] = []
         const normalArray: vec4[] = []
-        const uvArray: number[] = []
+        const uvArray: vec2[] = []
 
         const diff = this.base - this.top
         const normalizedDiff = diff / this.base
@@ -39,45 +39,45 @@ export class Trapezoid {
             vec4.fromValues(-this.base / 2, -this.height / 2, 0, 1)
         )
         normalArray.push(vec4.fromValues(0, -1, 0, 1))
-        uvArray.push(0, 0)
+        uvArray.push(vec2.fromValues(0, 0))
 
         positionArray.push(
             vec4.fromValues(this.base / 2, -this.height / 2, 0, 1)
         )
         normalArray.push(vec4.fromValues(0, -1, 0, 1))
-        uvArray.push(1, 0)
+        uvArray.push(vec2.fromValues(1, 0))
 
         positionArray.push(
             vec4.fromValues(this.base / 2, -this.height / 2, 0, 1)
         )
         normalArray.push(rightSideNormal)
-        uvArray.push(1, 0)
+        uvArray.push(vec2.fromValues(1, 0))
 
         positionArray.push(vec4.fromValues(this.top / 2, this.height / 2, 0, 1))
         normalArray.push(rightSideNormal)
-        uvArray.push(1 - normalizedDiff, 1)
+        uvArray.push(vec2.fromValues(1 - normalizedDiff, 1))
 
         positionArray.push(vec4.fromValues(this.top / 2, this.height / 2, 0, 1))
         normalArray.push(vec4.fromValues(0, 1, 0, 1))
-        uvArray.push(1 - normalizedDiff, 1)
+        uvArray.push(vec2.fromValues(1 - normalizedDiff, 1))
 
         positionArray.push(
             vec4.fromValues(-this.top / 2, this.height / 2, 0, 1)
         )
         normalArray.push(vec4.fromValues(0, 1, 0, 1))
-        uvArray.push(normalizedDiff, 1)
+        uvArray.push(vec2.fromValues(normalizedDiff, 1))
 
         positionArray.push(
             vec4.fromValues(-this.top / 2, this.height / 2, 0, 1)
         )
         normalArray.push(leftSideNormal)
-        uvArray.push(normalizedDiff, 1)
+        uvArray.push(vec2.fromValues(normalizedDiff, 1))
 
         positionArray.push(
             vec4.fromValues(-this.base / 2, -this.height / 2, 0, 1)
         )
         normalArray.push(leftSideNormal)
-        uvArray.push(0, 0)
+        uvArray.push(vec2.fromValues(0, 0))
 
         return { positionArray, normalArray, uvArray }
     }

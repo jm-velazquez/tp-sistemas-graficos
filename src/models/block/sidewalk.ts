@@ -8,7 +8,7 @@ export const BLOCK_SIDE = 100
 export const BLOCK_CORNER_RADIUS = 10
 
 export function getSidewalk(gl: WebGLRenderingContext, texture: WebGLTexture) {
-    let level0Matrix = mat4.fromValues(
+    const level0Matrix = mat4.fromValues(
         1,
         0,
         0,
@@ -27,7 +27,7 @@ export function getSidewalk(gl: WebGLRenderingContext, texture: WebGLTexture) {
         1
     )
 
-    let level1Matrix = mat4.fromValues(
+    const level1Matrix = mat4.fromValues(
         1,
         0,
         0,

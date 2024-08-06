@@ -1,6 +1,6 @@
 const CORNER_DEFINITION = 4
 
-import { vec4 } from 'gl-matrix'
+import { vec2, vec4 } from 'gl-matrix'
 import { Shape } from './shape'
 
 export class Squircle implements Shape {
@@ -9,7 +9,7 @@ export class Squircle implements Shape {
 
     positionArray: vec4[] = []
     normalArray: vec4[] = []
-    uvArray: number[] = []
+    uvArray: vec2[] = []
 
     constructor(side: number, cornerRadius: number, uvMultiplier: number) {
         this.side = side
@@ -48,8 +48,10 @@ export class Squircle implements Shape {
         )
         this.normalArray.push(vec4.fromValues(0, -1, 0, 1))
         this.uvArray.push(
-            ((-2 * (side / 2 - cornerRadius)) / this.side) * uvMultiplier + 1,
-            ((-2 * (-side / 2)) / this.side) * uvMultiplier
+            vec2.fromValues(
+                ((-2 * (side / 2 - cornerRadius)) / this.side) * uvMultiplier + 1,
+                ((-2 * (-side / 2)) / this.side) * uvMultiplier
+            )
         )
     }
 
@@ -68,8 +70,10 @@ export class Squircle implements Shape {
             this.positionArray.push(vec4.fromValues(x, y, 0, 1))
             this.normalArray.push(vec4.fromValues(xCorner, yCorner, 0, 1))
             this.uvArray.push(
-                ((-2 * x) / this.side) * uvMultiplier + 1,
-                ((-2 * y) / this.side) * uvMultiplier
+                vec2.fromValues(
+                    ((-2 * x) / this.side) * uvMultiplier + 1,
+                    ((-2 * y) / this.side) * uvMultiplier
+                )
             )
         }
     }

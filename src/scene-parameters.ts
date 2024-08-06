@@ -27,7 +27,7 @@ interface PointLight {
     strength: number
 }
 
-interface LightParameters {
+export interface LightParameters {
     ambientLight: AmbientLight
     directionalLight: DirectionalLight
     pointLight: PointLight

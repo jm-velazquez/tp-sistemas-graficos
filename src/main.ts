@@ -24,23 +24,23 @@ function main() {
 
 function initWebGL() {
     try {
-        let canvas = getCanvas()
-        let gl = setUpContext(canvas)
-        let sceneParameters = new SceneParameters()
+        const canvas = getCanvas()
+        const gl = setUpContext(canvas)
+        const sceneParameters = new SceneParameters()
 
         const editor = new CurveEditor('editor-container', {
             width: CURVE_EDITOR_SIDE,
             height: CURVE_EDITOR_SIDE,
         })
-        let app = new AppParameters(() => sceneParameters.generate(editor), INITIAL_LIGHTS_AMOUNT, INITIAL_COLUMNS_AMOUNT) 
+        const app = new AppParameters(() => sceneParameters.generate(editor), INITIAL_LIGHTS_AMOUNT, INITIAL_COLUMNS_AMOUNT) 
 
-        let matrices = new Matrices();        
+        const matrices = new Matrices();        
         matrices.setUpPerspectiveByDimensions(canvas.width, canvas.height)
         
         window.addEventListener('resize', () => resizeCanvas(gl, canvas, matrices))
         const cameraManager = new CameraManager()
 	
-        let glProgram = initShaders(gl)
+        const glProgram = initShaders(gl)
         sceneParameters.generate(editor)
         const textureMap = new TextureMap(gl)
         tick(gl, glProgram, matrices, app, sceneParameters, cameraManager, textureMap)
@@ -141,7 +141,7 @@ function resizeCanvas(gl: WebGLRenderingContext, canvas: HTMLCanvasElement, matr
 }
 
 function setUpContext(canvas: HTMLCanvasElement) {
-    let gl: WebGLRenderingContext = canvas.getContext('webgl')!
+    const gl: WebGLRenderingContext = canvas.getContext('webgl')!
     gl.enable(gl.DEPTH_TEST)
     gl.clearColor(0.1, 0.1, 0.2, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

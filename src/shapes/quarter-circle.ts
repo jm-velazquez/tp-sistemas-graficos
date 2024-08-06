@@ -1,4 +1,4 @@
-import { vec4 } from 'gl-matrix'
+import { vec2, vec4 } from 'gl-matrix'
 import { Shape } from './shape'
 
 export class QuarterCircle implements Shape {
@@ -21,7 +21,7 @@ export class QuarterCircle implements Shape {
         const increment = 1 / this.definition
         const positionArray: vec4[] = []
         const normalArray: vec4[] = []
-        const uvArray: number[] = []
+        const uvArray: vec2[] = []
 
         for (let i = 0; i <= this.definition; i++) {
             const position = this.getPosition(i * increment)
@@ -30,8 +30,10 @@ export class QuarterCircle implements Shape {
             positionArray.push(position)
             normalArray.push(normal)
             uvArray.push(
-                position[0] / this.radius + this.radius,
-                position[1] / this.radius + this.radius
+                vec2.fromValues(
+                    position[0] / this.radius + this.radius,
+                    position[1] / this.radius + this.radius
+                )
             )
         }
         return { positionArray, normalArray, uvArray }

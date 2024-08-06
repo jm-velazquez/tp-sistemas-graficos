@@ -14,7 +14,7 @@ const TOP_HEIGHT = 0.5
 export const TOP_DEPTH = 0.95
 
 export function getChasis(gl: WebGLRenderingContext, texture: WebGLTexture) {
-    let level0Matrix = mat4.fromValues(
+    const level0Matrix = mat4.fromValues(
         1,
         0,
         0,
@@ -33,7 +33,7 @@ export function getChasis(gl: WebGLRenderingContext, texture: WebGLTexture) {
         1
     )
 
-    let level1MatrixBase = mat4.fromValues(
+    const level1MatrixBase = mat4.fromValues(
         1,
         0,
         0,
@@ -73,7 +73,7 @@ export function getChasis(gl: WebGLRenderingContext, texture: WebGLTexture) {
         texture
     )
 
-    let level1MatrixTop = mat4.fromValues(
+    const level1MatrixTop = mat4.fromValues(
         1,
         0,
         0,

@@ -1,4 +1,4 @@
-import { mat4, vec3, vec4 } from 'gl-matrix'
+import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import { getGlBuffersFromBuffers } from './gl/gl-buffers'
 import { Shape } from './shapes/shape.js'
 
@@ -169,7 +169,7 @@ function getAveragePosition(positionVectors: vec4[]) {
 
 function generateTopAndBottomBuffers(
     positionArray: vec4[],
-    uvArray: number[],
+    uvArray: vec2[],
     levelMatrices: mat4[],
     withBottomCover: boolean,
     withTopCover: boolean
@@ -177,7 +177,7 @@ function generateTopAndBottomBuffers(
     let averagePosition = getAveragePosition(positionArray)
     let bottomPositionBuffer = []
     let bottomNormalBuffer = []
-    const bottomUVBuffer = []
+    const bottomUVBuffer: number[] = []
 
     if (withBottomCover) {
         // Bottom Normal Vector
@@ -228,7 +228,7 @@ function generateTopAndBottomBuffers(
                 bottomNormalVector[2]
             )
         })
-        bottomUVBuffer.push(...uvArray)
+        bottomUVBuffer.push(...uvArray.flatMap((vector: vec2) => [vector[0], vector[1]]))
     }
 
     let topPositionBuffer = []
@@ -263,7 +263,7 @@ function generateTopAndBottomBuffers(
                 topNormalVector[2]
             )
         })
-        topUVBuffer.push(...uvArray)
+        topUVBuffer.push(...uvArray.flatMap((vector: vec2) => [vector[0], vector[1]]))
         // Top Center Vertex Row
         const newAveragePosition = vec4.create()
         vec4.transformMat4(

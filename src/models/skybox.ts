@@ -8,7 +8,7 @@ export function getSkybox(gl: WebGLRenderingContext, textureMap: TextureMap) {
     const positionBuffer = []
     const normalBuffer = []
     const uvBuffer = []
-    let indexBuffer = []
+    const indexBuffer = []
     positionBuffer.push(
         0,
         0,
